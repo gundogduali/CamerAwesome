@@ -21,7 +21,7 @@ dependencies:
   open_filex: ^4.7.0
   meta: ^1.10.0
   rxdart: ^0.28.0
-  video_player: ^2.9.2
+  video_player: ^2.11.0
 
 dev_dependencies:
   exif: ^3.3.0
