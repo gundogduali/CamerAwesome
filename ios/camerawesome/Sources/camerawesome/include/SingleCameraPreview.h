@@ -65,7 +65,6 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 @property(readonly, nonatomic) PhysicalButtonController *physicalButtonController;
 @property(readonly, copy) void (^completion)(NSNumber * _Nullable, FlutterError * _Nullable);
 @property(nonatomic, copy) void (^onPreviewFrameAvailable)(void);
-@property(nonatomic, copy) void (^onFirstFrameReceived)(void);
 
 - (instancetype)initWithCameraSensor:(PigeonSensorPosition)sensor
                         videoOptions:(nullable CupertinoVideoOptions *)videoOptions

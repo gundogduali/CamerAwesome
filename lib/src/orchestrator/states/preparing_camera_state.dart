@@ -134,6 +134,8 @@ class PreparingCameraState extends CameraState {
     // blocks until the first frame is received.
     await CamerawesomePlugin.start();
     cameraContext.changeState(VideoCameraState.from(cameraContext));
+
+    return CamerawesomePlugin.start();
   }
 
   Future _startPhotoMode() async {
@@ -147,6 +149,8 @@ class PreparingCameraState extends CameraState {
     // The native start() method blocks until the first frame is received.
     await CamerawesomePlugin.start();
     cameraContext.changeState(PhotoCameraState.from(cameraContext));
+
+    return CamerawesomePlugin.start();
   }
 
   Future _startPreviewMode() async {
@@ -160,6 +164,8 @@ class PreparingCameraState extends CameraState {
     // The native start() method blocks until the first frame is received.
     await CamerawesomePlugin.start();
     cameraContext.changeState(PreviewCameraState.from(cameraContext));
+
+    return CamerawesomePlugin.start();
   }
 
   Future _startAnalysisMode() async {
