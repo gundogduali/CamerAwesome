@@ -128,7 +128,7 @@ class PreparingCameraState extends CameraState {
       enableImageStream: cameraContext.imageAnalysisEnabled,
       enablePhysicalButton: cameraContext.enablePhysicalButton,
     );
-    await _ensureAndroidStartsAtOneXZoom();
+    await sensorConfig.setZoomToOneX(onlyIfUnset: true);
     // Start camera BEFORE changing state to ensure frames are flowing
     // when the UI shows the record button. The native start() method
     // blocks until the first frame is received.
@@ -142,7 +142,7 @@ class PreparingCameraState extends CameraState {
       enableImageStream: cameraContext.imageAnalysisEnabled,
       enablePhysicalButton: cameraContext.enablePhysicalButton,
     );
-    await _ensureAndroidStartsAtOneXZoom();
+    await sensorConfig.setZoomToOneX(onlyIfUnset: true);
     // Start camera BEFORE changing state to ensure frames are flowing.
     // The native start() method blocks until the first frame is received.
     await CamerawesomePlugin.start();
@@ -155,7 +155,7 @@ class PreparingCameraState extends CameraState {
       enableImageStream: cameraContext.imageAnalysisEnabled,
       enablePhysicalButton: cameraContext.enablePhysicalButton,
     );
-    await _ensureAndroidStartsAtOneXZoom();
+    await sensorConfig.setZoomToOneX(onlyIfUnset: true);
     // Start camera BEFORE changing state to ensure frames are flowing.
     // The native start() method blocks until the first frame is received.
     await CamerawesomePlugin.start();
@@ -177,23 +177,6 @@ class PreparingCameraState extends CameraState {
   }
 
   bool _isReady = false;
-
-  Future<void> _ensureAndroidStartsAtOneXZoom() async {
-    if (!Platform.isAndroid || sensorConfig.zoom != 0.0) {
-      return;
-    }
-    final minZoom = await CamerawesomePlugin.getMinZoom();
-    final maxZoom = await CamerawesomePlugin.getMaxZoom();
-    if (minZoom == null || maxZoom == null || maxZoom <= minZoom) {
-      return;
-    }
-    if (minZoom < 1.0 && maxZoom >= 1.0) {
-      final oneXLinearZoom = ((1.0 - minZoom) / (maxZoom - minZoom)).clamp(0.0, 1.0).toDouble();
-      if (oneXLinearZoom > 0.0) {
-        await sensorConfig.setZoom(oneXLinearZoom);
-      }
-    }
-  }
 
   // TODO Refactor this (make it stream providing state)
   Future<bool> _init({
