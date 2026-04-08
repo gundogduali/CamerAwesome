@@ -171,8 +171,7 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
             if (zoom > 0) {
                 // TODO Find a better way to set initial zoom than using a postDelayed
                 Handler(Looper.getMainLooper()).postDelayed({
-                    (cameraState.concurrentCamera?.cameras?.firstOrNull()
-                        ?: cameraState.previewCamera)?.cameraControl?.setLinearZoom(zoom.toFloat())
+                    cameraState.setZoom(zoom.toFloat())
                 }, 200)
             }
         }
@@ -601,7 +600,7 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
     }
 
     override fun setZoom(zoom: Double) {
-        cameraState.setLinearZoom(zoom.toFloat())
+        cameraState.setZoom(zoom.toFloat())
     }
 
     @SuppressLint("RestrictedApi")
