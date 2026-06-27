@@ -20,6 +20,10 @@ FlutterEventSink physicalButtonEventSink;
 @property SingleCameraPreview *camera;
 @property MultiCameraPreview *multiCamera;
 - (instancetype)init:(NSObject<FlutterPluginRegistrar>*)registrar;
+/// Returns the single camera to apply AVFoundation photo controls on, or sets
+/// [error] when the camera is not initialized or running in multi camera mode
+/// (these controls are iOS single-camera only for now).
+- (nullable SingleCameraPreview *)singleCameraForPhotoControlsWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
 @end
 
 // TODO: create a protocol to uniformize multi camera & single camera
@@ -632,6 +636,244 @@ FlutterEventSink physicalButtonEventSink;
   } else {
     [self.camera setZoom:[zoom floatValue] error:error];
   }
+}
+
+#pragma mark - AVFoundation photo controls
+
+- (nullable SingleCameraPreview *)singleCameraForPhotoControlsWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (self.camera == nil && self.multiCamera == nil) {
+    *error = [FlutterError errorWithCode:@"CAMERA_MUST_BE_INIT" message:@"init must be call before start" details:nil];
+    return nil;
+  }
+  if (self.camera == nil) {
+    *error = [FlutterError errorWithCode:@"MULTI_CAMERA_UNSUPPORTED" message:@"this feature is currently not supported with multi camera feature" details:nil];
+    return nil;
+  }
+  return self.camera;
+}
+
+// MARK: Exposure
+
+- (void)setExposureModeMode:(PigeonExposureMode)mode error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  AVCaptureExposureMode avMode;
+  switch (mode) {
+    case PigeonExposureModeLocked: avMode = AVCaptureExposureModeLocked; break;
+    case PigeonExposureModeAuto: avMode = AVCaptureExposureModeAutoExpose; break;
+    case PigeonExposureModeContinuousAuto: avMode = AVCaptureExposureModeContinuousAutoExposure; break;
+    case PigeonExposureModeCustom: avMode = AVCaptureExposureModeCustom; break;
+    default: avMode = AVCaptureExposureModeContinuousAutoExposure; break;
+  }
+  [camera setExposureMode:avMode error:error];
+}
+
+- (void)setExposurePointX:(NSNumber *)x y:(NSNumber *)y previewSize:(PreviewSize *)previewSize error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setExposurePoint:CGPointMake([x floatValue], [y floatValue]) preview:CGSizeMake([previewSize.width floatValue], [previewSize.height floatValue]) error:error];
+}
+
+- (void)setExposureTargetBiasBias:(NSNumber *)bias error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setExposureTargetBias:[bias floatValue] error:error];
+}
+
+- (void)setManualExposureIso:(NSNumber *)iso exposureDurationSeconds:(NSNumber *)exposureDurationSeconds error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setManualExposureWithISO:[iso floatValue] durationSeconds:[exposureDurationSeconds doubleValue] error:error];
+}
+
+- (nullable PigeonExposureState *)getExposureStateWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return [camera getExposureStateWithError:error];
+}
+
+- (nullable PigeonCameraSettings *)getCameraSettingsWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return [camera getCameraSettingsWithError:error];
+}
+
+// MARK: Focus
+
+- (void)setFocusModeMode:(PigeonFocusMode)mode error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  AVCaptureFocusMode avMode;
+  switch (mode) {
+    case PigeonFocusModeLocked: avMode = AVCaptureFocusModeLocked; break;
+    case PigeonFocusModeAuto: avMode = AVCaptureFocusModeAutoFocus; break;
+    case PigeonFocusModeContinuousAuto: avMode = AVCaptureFocusModeContinuousAutoFocus; break;
+    default: avMode = AVCaptureFocusModeContinuousAutoFocus; break;
+  }
+  [camera setFocusMode:avMode error:error];
+}
+
+- (void)setLensPositionLensPosition:(NSNumber *)lensPosition error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setLensPosition:[lensPosition floatValue] error:error];
+}
+
+- (nullable NSNumber *)getLensPositionWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return @([camera getLensPosition]);
+}
+
+- (void)setAutoFocusRangeRestrictionRestriction:(PigeonFocusRangeRestriction)restriction error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  AVCaptureAutoFocusRangeRestriction avRestriction;
+  switch (restriction) {
+    case PigeonFocusRangeRestrictionNone: avRestriction = AVCaptureAutoFocusRangeRestrictionNone; break;
+    case PigeonFocusRangeRestrictionNear: avRestriction = AVCaptureAutoFocusRangeRestrictionNear; break;
+    case PigeonFocusRangeRestrictionFar: avRestriction = AVCaptureAutoFocusRangeRestrictionFar; break;
+    default: avRestriction = AVCaptureAutoFocusRangeRestrictionNone; break;
+  }
+  [camera setAutoFocusRangeRestriction:avRestriction error:error];
+}
+
+- (void)setSmoothAutoFocusEnabledEnabled:(NSNumber *)enabled error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setSmoothAutoFocusEnabled:[enabled boolValue] error:error];
+}
+
+// MARK: White balance
+
+- (void)setWhiteBalanceModeMode:(PigeonWhiteBalanceMode)mode error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  AVCaptureWhiteBalanceMode avMode;
+  switch (mode) {
+    case PigeonWhiteBalanceModeLocked: avMode = AVCaptureWhiteBalanceModeLocked; break;
+    case PigeonWhiteBalanceModeAuto: avMode = AVCaptureWhiteBalanceModeAutoWhiteBalance; break;
+    case PigeonWhiteBalanceModeContinuousAuto: avMode = AVCaptureWhiteBalanceModeContinuousAutoWhiteBalance; break;
+    default: avMode = AVCaptureWhiteBalanceModeContinuousAutoWhiteBalance; break;
+  }
+  [camera setWhiteBalanceMode:avMode error:error];
+}
+
+- (void)setWhiteBalanceGainsGains:(PigeonWhiteBalanceGains *)gains error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setWhiteBalanceGainsRed:[gains.red floatValue] green:[gains.green floatValue] blue:[gains.blue floatValue] error:error];
+}
+
+- (void)setWhiteBalanceTemperatureTintTemperature:(NSNumber *)temperature tint:(NSNumber *)tint error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setWhiteBalanceTemperature:[temperature floatValue] tint:[tint floatValue] error:error];
+}
+
+- (nullable PigeonWhiteBalanceGains *)getWhiteBalanceGainsWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return [camera getWhiteBalanceGainsWithError:error];
+}
+
+- (nullable NSNumber *)getMaxWhiteBalanceGainWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return @([camera getMaxWhiteBalanceGain]);
+}
+
+- (void)setGrayWorldWhiteBalanceWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setGrayWorldWhiteBalanceWithError:error];
+}
+
+// MARK: Lighting
+
+- (void)setTorchModeMode:(PigeonTorchMode)mode error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  AVCaptureTorchMode avMode;
+  switch (mode) {
+    case PigeonTorchModeOff: avMode = AVCaptureTorchModeOff; break;
+    case PigeonTorchModeOn: avMode = AVCaptureTorchModeOn; break;
+    case PigeonTorchModeAuto: avMode = AVCaptureTorchModeAuto; break;
+    default: avMode = AVCaptureTorchModeOff; break;
+  }
+  [camera setTorchModeValue:avMode error:error];
+}
+
+- (void)setTorchLevelLevel:(NSNumber *)level error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setTorchLevel:[level floatValue] error:error];
+}
+
+- (nullable NSNumber *)isTorchActiveWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return @([camera isTorchActive]);
+}
+
+- (void)setLowLightBoostEnabledEnabled:(NSNumber *)enabled error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setLowLightBoostEnabled:[enabled boolValue] error:error];
+}
+
+- (nullable NSNumber *)isLowLightBoostSupportedWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return @([camera isLowLightBoostSupported]);
+}
+
+// MARK: Color
+
+- (void)setColorSpaceColorSpace:(PigeonColorSpace)colorSpace error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  // PigeonColorSpace is laid out to match AVCaptureColorSpace raw values
+  // (sRGB=0, P3_D65=1, HLG_BT2020=2, appleLog=3).
+  [camera setColorSpace:(AVCaptureColorSpace)colorSpace error:error];
+}
+
+- (nullable NSArray<NSString *> *)getAvailableColorSpacesWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return [camera getAvailableColorSpaces];
+}
+
+- (void)setAutoRedEyeReductionEnabledEnabled:(NSNumber *)enabled error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setAutoRedEyeReductionEnabled:[enabled boolValue]];
+}
+
+// MARK: Zoom (ratio based)
+
+- (void)setZoomRatioRatio:(NSNumber *)ratio error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera setZoomRatio:[ratio floatValue] error:error];
+}
+
+- (nullable NSNumber *)getMinZoomRatioWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return @([camera getMinZoomRatio]);
+}
+
+- (nullable NSNumber *)getMaxZoomRatioWithError:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return nil;
+  return @([camera getMaxZoomRatio]);
+}
+
+- (void)rampToZoomRatioRatio:(NSNumber *)ratio rate:(NSNumber *)rate error:(FlutterError *_Nullable *_Nonnull)error {
+  SingleCameraPreview *camera = [self singleCameraForPhotoControlsWithError:error];
+  if (camera == nil) return;
+  [camera rampToZoomRatio:[ratio floatValue] rate:[rate floatValue] error:error];
 }
 
 #pragma mark - Image stream methods

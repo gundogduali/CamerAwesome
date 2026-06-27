@@ -9,6 +9,7 @@
 
 @implementation SingleCameraPreview {
   dispatch_queue_t _dispatchQueue;
+  BOOL _autoRedEyeReductionEnabled;
 }
 
 - (instancetype)initWithCameraSensor:(PigeonSensorPosition)sensor
@@ -519,6 +520,9 @@
   AVCapturePhotoSettings *settings = [AVCapturePhotoSettings photoSettings];
   [settings setFlashMode:_flashMode];
   [settings setHighResolutionPhotoEnabled:YES];
+  if (_capturePhotoOutput.isAutoRedEyeReductionSupported) {
+    [settings setAutoRedEyeReductionEnabled:_autoRedEyeReductionEnabled];
+  }
   
   [_capturePhotoOutput capturePhotoWithSettings:settings
                                        delegate:cameraPicture];
@@ -653,6 +657,424 @@
     if (_videoController.isRecording && _videoController.isAudioEnabled) {
       [_videoController captureOutput:output didOutputSampleBuffer:sampleBuffer fromConnection:connection captureVideoOutput:nil]; // Pass nil for video output for audio
     }
+  }
+}
+
+# pragma mark - AVFoundation photo controls
+
+/// Convert a point expressed in the [preview] pixel coordinate space into a
+/// normalized (0...1) point of interest expected by AVFoundation.
+- (CGPoint)normalizedPointFromPoint:(CGPoint)point preview:(CGSize)preview {
+  CGFloat x = preview.width > 0 ? point.x / preview.width : 0.5;
+  CGFloat y = preview.height > 0 ? point.y / preview.height : 0.5;
+  x = MAX(0.0, MIN(1.0, x));
+  y = MAX(0.0, MIN(1.0, y));
+  return CGPointMake(x, y);
+}
+
+// MARK: Exposure
+
+- (void)setExposureMode:(AVCaptureExposureMode)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isExposureModeSupported:mode]) {
+    *error = [FlutterError errorWithCode:@"EXPOSURE_MODE_UNSUPPORTED" message:@"exposure mode not supported on this device" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice setExposureMode:mode];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"EXPOSURE_MODE_ERROR" message:@"can't set exposure mode" details:[lockError localizedDescription]];
+  }
+}
+
+- (void)setExposurePoint:(CGPoint)point preview:(CGSize)preview error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isExposurePointOfInterestSupported]) {
+    *error = [FlutterError errorWithCode:@"EXPOSURE_POINT_UNSUPPORTED" message:@"exposure point of interest is not supported" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice setExposurePointOfInterest:[self normalizedPointFromPoint:point preview:preview]];
+    if ([_captureDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]) {
+      [_captureDevice setExposureMode:AVCaptureExposureModeContinuousAutoExposure];
+    }
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"EXPOSURE_POINT_ERROR" message:@"can't set exposure point" details:[lockError localizedDescription]];
+  }
+}
+
+- (void)setExposureTargetBias:(float)bias error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    float clamped = MAX(_captureDevice.minExposureTargetBias, MIN(_captureDevice.maxExposureTargetBias, bias));
+    [_captureDevice setExposureTargetBias:clamped completionHandler:nil];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"EXPOSURE_BIAS_ERROR" message:@"can't set exposure target bias" details:[lockError localizedDescription]];
+  }
+}
+
+- (void)setManualExposureWithISO:(float)iso durationSeconds:(double)durationSeconds error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isExposureModeSupported:AVCaptureExposureModeCustom]) {
+    *error = [FlutterError errorWithCode:@"EXPOSURE_CUSTOM_UNSUPPORTED" message:@"custom exposure is not supported on this device" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    AVCaptureDeviceFormat *format = _captureDevice.activeFormat;
+    float clampedISO = MAX(format.minISO, MIN(format.maxISO, iso));
+
+    CMTime duration = CMTimeMakeWithSeconds(durationSeconds, 1000000);
+    CMTime minDuration = format.minExposureDuration;
+    CMTime maxDuration = format.maxExposureDuration;
+    if (CMTimeCompare(duration, minDuration) < 0) {
+      duration = minDuration;
+    } else if (CMTimeCompare(duration, maxDuration) > 0) {
+      duration = maxDuration;
+    }
+
+    [_captureDevice setExposureModeCustomWithDuration:duration ISO:clampedISO completionHandler:nil];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"EXPOSURE_CUSTOM_ERROR" message:@"can't set manual exposure" details:[lockError localizedDescription]];
+  }
+}
+
+- (nullable PigeonExposureState *)getExposureStateWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  AVCaptureDeviceFormat *format = _captureDevice.activeFormat;
+  return [PigeonExposureState makeWithMinIso:@(format.minISO)
+                                      maxIso:@(format.maxISO)
+                                  currentIso:@(_captureDevice.ISO)
+                  minExposureDurationSeconds:@(CMTimeGetSeconds(format.minExposureDuration))
+                  maxExposureDurationSeconds:@(CMTimeGetSeconds(format.maxExposureDuration))
+              currentExposureDurationSeconds:@(CMTimeGetSeconds(_captureDevice.exposureDuration))
+                       minExposureTargetBias:@(_captureDevice.minExposureTargetBias)
+                       maxExposureTargetBias:@(_captureDevice.maxExposureTargetBias)
+                   currentExposureTargetBias:@(_captureDevice.exposureTargetBias)];
+}
+
+- (nullable PigeonCameraSettings *)getCameraSettingsWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  AVCaptureDeviceFormat *format = _captureDevice.activeFormat;
+
+  // Convert the current device white balance gains to temperature & tint.
+  AVCaptureWhiteBalanceTemperatureAndTintValues tempAndTint =
+      [_captureDevice temperatureAndTintValuesForDeviceWhiteBalanceGains:_captureDevice.deviceWhiteBalanceGains];
+
+  // The Pigeon*Mode enums are intentionally ordered to match the matching
+  // AVFoundation enums, so a direct cast is safe.
+  return [PigeonCameraSettings makeWithExposureMode:(PigeonExposureMode)_captureDevice.exposureMode
+                                 exposureTargetBias:@(_captureDevice.exposureTargetBias)
+                              minExposureTargetBias:@(_captureDevice.minExposureTargetBias)
+                              maxExposureTargetBias:@(_captureDevice.maxExposureTargetBias)
+                                                iso:@(_captureDevice.ISO)
+                                             minIso:@(format.minISO)
+                                             maxIso:@(format.maxISO)
+                            exposureDurationSeconds:@(CMTimeGetSeconds(_captureDevice.exposureDuration))
+                         minExposureDurationSeconds:@(CMTimeGetSeconds(format.minExposureDuration))
+                         maxExposureDurationSeconds:@(CMTimeGetSeconds(format.maxExposureDuration))
+                                          focusMode:(PigeonFocusMode)_captureDevice.focusMode
+                                       lensPosition:@(_captureDevice.lensPosition)
+                                   whiteBalanceMode:(PigeonWhiteBalanceMode)_captureDevice.whiteBalanceMode
+                                        temperature:@(tempAndTint.temperature)
+                                               tint:@(tempAndTint.tint)
+                                          torchMode:(PigeonTorchMode)_captureDevice.torchMode
+                                        torchActive:@(_captureDevice.isTorchActive)
+                               lowLightBoostEnabled:@(_captureDevice.automaticallyEnablesLowLightBoostWhenAvailable)
+                                         colorSpace:(PigeonColorSpace)_captureDevice.activeColorSpace
+                         autoRedEyeReductionEnabled:@(_autoRedEyeReductionEnabled)
+                                          zoomRatio:@(_captureDevice.videoZoomFactor)
+                                       minZoomRatio:@([self getMinZoomRatio])
+                                       maxZoomRatio:@([self getMaxZoomRatio])];
+}
+
+// MARK: Focus
+
+- (void)setFocusMode:(AVCaptureFocusMode)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isFocusModeSupported:mode]) {
+    *error = [FlutterError errorWithCode:@"FOCUS_MODE_UNSUPPORTED" message:@"focus mode not supported on this device" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice setFocusMode:mode];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"FOCUS_MODE_ERROR" message:@"can't set focus mode" details:[lockError localizedDescription]];
+  }
+}
+
+- (void)setLensPosition:(float)lensPosition error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isLockingFocusWithCustomLensPositionSupported]) {
+    *error = [FlutterError errorWithCode:@"LENS_POSITION_UNSUPPORTED" message:@"locking focus with custom lens position is not supported" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    float clamped = MAX(0.0, MIN(1.0, lensPosition));
+    [_captureDevice setFocusModeLockedWithLensPosition:clamped completionHandler:nil];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"LENS_POSITION_ERROR" message:@"can't set lens position" details:[lockError localizedDescription]];
+  }
+}
+
+- (CGFloat)getLensPosition {
+  return _captureDevice.lensPosition;
+}
+
+- (void)setAutoFocusRangeRestriction:(AVCaptureAutoFocusRangeRestriction)restriction error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isAutoFocusRangeRestrictionSupported]) {
+    *error = [FlutterError errorWithCode:@"FOCUS_RANGE_UNSUPPORTED" message:@"auto focus range restriction is not supported" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice setAutoFocusRangeRestriction:restriction];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"FOCUS_RANGE_ERROR" message:@"can't set auto focus range restriction" details:[lockError localizedDescription]];
+  }
+}
+
+- (void)setSmoothAutoFocusEnabled:(BOOL)enabled error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isSmoothAutoFocusSupported]) {
+    *error = [FlutterError errorWithCode:@"SMOOTH_FOCUS_UNSUPPORTED" message:@"smooth auto focus is not supported" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice setSmoothAutoFocusEnabled:enabled];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"SMOOTH_FOCUS_ERROR" message:@"can't set smooth auto focus" details:[lockError localizedDescription]];
+  }
+}
+
+// MARK: White balance
+
+/// Clamp each component of the given gains to the [1.0, maxWhiteBalanceGain] range.
+- (AVCaptureWhiteBalanceGains)clampedWhiteBalanceGains:(AVCaptureWhiteBalanceGains)gains {
+  CGFloat maxGain = _captureDevice.maxWhiteBalanceGain;
+  gains.redGain = MAX(1.0, MIN(maxGain, gains.redGain));
+  gains.greenGain = MAX(1.0, MIN(maxGain, gains.greenGain));
+  gains.blueGain = MAX(1.0, MIN(maxGain, gains.blueGain));
+  return gains;
+}
+
+- (void)setWhiteBalanceMode:(AVCaptureWhiteBalanceMode)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isWhiteBalanceModeSupported:mode]) {
+    *error = [FlutterError errorWithCode:@"WB_MODE_UNSUPPORTED" message:@"white balance mode not supported on this device" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice setWhiteBalanceMode:mode];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"WB_MODE_ERROR" message:@"can't set white balance mode" details:[lockError localizedDescription]];
+  }
+}
+
+- (void)setWhiteBalanceGainsRed:(float)red green:(float)green blue:(float)blue error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeLocked]) {
+    *error = [FlutterError errorWithCode:@"WB_GAINS_UNSUPPORTED" message:@"locked white balance is not supported" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    AVCaptureWhiteBalanceGains gains;
+    gains.redGain = red;
+    gains.greenGain = green;
+    gains.blueGain = blue;
+    [_captureDevice setWhiteBalanceModeLockedWithDeviceWhiteBalanceGains:[self clampedWhiteBalanceGains:gains] completionHandler:nil];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"WB_GAINS_ERROR" message:@"can't set white balance gains" details:[lockError localizedDescription]];
+  }
+}
+
+- (void)setWhiteBalanceTemperature:(float)temperature tint:(float)tint error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeLocked]) {
+    *error = [FlutterError errorWithCode:@"WB_TEMP_UNSUPPORTED" message:@"locked white balance is not supported" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    AVCaptureWhiteBalanceTemperatureAndTintValues values;
+    values.temperature = temperature;
+    values.tint = tint;
+    AVCaptureWhiteBalanceGains gains = [_captureDevice deviceWhiteBalanceGainsForTemperatureAndTintValues:values];
+    [_captureDevice setWhiteBalanceModeLockedWithDeviceWhiteBalanceGains:[self clampedWhiteBalanceGains:gains] completionHandler:nil];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"WB_TEMP_ERROR" message:@"can't set white balance temperature" details:[lockError localizedDescription]];
+  }
+}
+
+- (nullable PigeonWhiteBalanceGains *)getWhiteBalanceGainsWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  AVCaptureWhiteBalanceGains gains = _captureDevice.deviceWhiteBalanceGains;
+  return [PigeonWhiteBalanceGains makeWithRed:@(gains.redGain) green:@(gains.greenGain) blue:@(gains.blueGain)];
+}
+
+- (CGFloat)getMaxWhiteBalanceGain {
+  return _captureDevice.maxWhiteBalanceGain;
+}
+
+- (void)setGrayWorldWhiteBalanceWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeLocked]) {
+    *error = [FlutterError errorWithCode:@"WB_GRAY_UNSUPPORTED" message:@"locked white balance is not supported" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    AVCaptureWhiteBalanceGains gains = _captureDevice.grayWorldDeviceWhiteBalanceGains;
+    [_captureDevice setWhiteBalanceModeLockedWithDeviceWhiteBalanceGains:[self clampedWhiteBalanceGains:gains] completionHandler:nil];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"WB_GRAY_ERROR" message:@"can't set gray world white balance" details:[lockError localizedDescription]];
+  }
+}
+
+// MARK: Lighting
+
+- (void)setTorchModeValue:(AVCaptureTorchMode)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice hasTorch] || ![_captureDevice isTorchModeSupported:mode]) {
+    *error = [FlutterError errorWithCode:@"TORCH_UNSUPPORTED" message:@"torch mode not supported on this device" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice setTorchMode:mode];
+    _torchMode = mode;
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"TORCH_ERROR" message:@"can't set torch mode" details:[lockError localizedDescription]];
+  }
+}
+
+- (void)setTorchLevel:(float)level error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice hasTorch]) {
+    *error = [FlutterError errorWithCode:@"TORCH_UNSUPPORTED" message:@"torch is not available on this device" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    if (level <= 0.0) {
+      [_captureDevice setTorchMode:AVCaptureTorchModeOff];
+      _torchMode = AVCaptureTorchModeOff;
+    } else {
+      float clamped = MIN(level, AVCaptureMaxAvailableTorchLevel);
+      NSError *torchError;
+      if (![_captureDevice setTorchModeOnWithLevel:clamped error:&torchError]) {
+        *error = [FlutterError errorWithCode:@"TORCH_LEVEL_ERROR" message:@"can't set torch level" details:[torchError localizedDescription]];
+      } else {
+        _torchMode = AVCaptureTorchModeOn;
+      }
+    }
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"TORCH_LEVEL_ERROR" message:@"can't set torch level" details:[lockError localizedDescription]];
+  }
+}
+
+- (BOOL)isTorchActive {
+  return _captureDevice.isTorchActive;
+}
+
+- (void)setLowLightBoostEnabled:(BOOL)enabled error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice isLowLightBoostSupported]) {
+    *error = [FlutterError errorWithCode:@"LOW_LIGHT_UNSUPPORTED" message:@"low light boost is not supported" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice setAutomaticallyEnablesLowLightBoostWhenAvailable:enabled];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"LOW_LIGHT_ERROR" message:@"can't set low light boost" details:[lockError localizedDescription]];
+  }
+}
+
+- (BOOL)isLowLightBoostSupported {
+  return _captureDevice.isLowLightBoostSupported;
+}
+
+// MARK: Color
+
+- (void)setColorSpace:(AVCaptureColorSpace)colorSpace error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  if (![_captureDevice.activeFormat.supportedColorSpaces containsObject:@(colorSpace)]) {
+    *error = [FlutterError errorWithCode:@"COLOR_SPACE_UNSUPPORTED" message:@"color space not supported by the active format" details:@""];
+    return;
+  }
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    _captureDevice.activeColorSpace = colorSpace;
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"COLOR_SPACE_ERROR" message:@"can't set color space" details:[lockError localizedDescription]];
+  }
+}
+
+- (NSArray<NSString *> *)getAvailableColorSpaces {
+  NSMutableArray<NSString *> *result = [NSMutableArray array];
+  for (NSNumber *colorSpace in _captureDevice.activeFormat.supportedColorSpaces) {
+    switch ([colorSpace integerValue]) {
+      case 0:
+        [result addObject:@"sRGB"];
+        break;
+      case 1:
+        [result addObject:@"p3D65"];
+        break;
+      case 2:
+        [result addObject:@"hlgBT2020"];
+        break;
+      case 3:
+        [result addObject:@"appleLog"];
+        break;
+      default:
+        break;
+    }
+  }
+  return result;
+}
+
+- (void)setAutoRedEyeReductionEnabled:(BOOL)enabled {
+  _autoRedEyeReductionEnabled = enabled;
+}
+
+// MARK: Zoom (ratio based)
+
+- (void)setZoomRatio:(float)ratio error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  CGFloat clamped = MAX([self getMinZoomRatio], MIN([self getMaxZoomRatio], ratio));
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    _captureDevice.videoZoomFactor = clamped;
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"ZOOM_RATIO_ERROR" message:@"can't set zoom ratio" details:[lockError localizedDescription]];
+  }
+}
+
+- (CGFloat)getMinZoomRatio {
+  return _captureDevice.minAvailableVideoZoomFactor;
+}
+
+- (CGFloat)getMaxZoomRatio {
+  CGFloat deviceMax = _captureDevice.maxAvailableVideoZoomFactor;
+  // Mirror the cap applied in getMaxZoom to avoid unstable very high factors.
+  return deviceMax > 50.0 ? 50.0 : deviceMax;
+}
+
+- (void)rampToZoomRatio:(float)ratio rate:(float)rate error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
+  CGFloat clamped = MAX([self getMinZoomRatio], MIN([self getMaxZoomRatio], ratio));
+  NSError *lockError;
+  if ([_captureDevice lockForConfiguration:&lockError]) {
+    [_captureDevice rampToVideoZoomFactor:clamped withRate:rate];
+    [_captureDevice unlockForConfiguration];
+  } else {
+    *error = [FlutterError errorWithCode:@"ZOOM_RAMP_ERROR" message:@"can't ramp zoom" details:[lockError localizedDescription]];
   }
 }
 

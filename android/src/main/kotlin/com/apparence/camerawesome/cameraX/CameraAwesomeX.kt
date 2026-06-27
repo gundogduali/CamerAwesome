@@ -713,6 +713,78 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
         return getCameraProvider().isMultiCamSupported()
     }
 
+    // ---------------------------------------------------------------------------
+    // AVFoundation photo controls - iOS only for now.
+    // These are intentionally not implemented on Android yet.
+    // ---------------------------------------------------------------------------
+
+    private fun iosOnly(name: String): Nothing =
+        throw NotImplementedError("$name is not implemented on Android yet (iOS only for now)")
+
+    override fun setExposureMode(mode: PigeonExposureMode) = iosOnly("setExposureMode")
+
+    override fun setExposurePoint(x: Double, y: Double, previewSize: PreviewSize) =
+        iosOnly("setExposurePoint")
+
+    override fun setExposureTargetBias(bias: Double) = iosOnly("setExposureTargetBias")
+
+    override fun setManualExposure(iso: Double, exposureDurationSeconds: Double) =
+        iosOnly("setManualExposure")
+
+    override fun getExposureState(): PigeonExposureState = iosOnly("getExposureState")
+
+    override fun getCameraSettings(): PigeonCameraSettings = iosOnly("getCameraSettings")
+
+    override fun setFocusMode(mode: PigeonFocusMode) = iosOnly("setFocusMode")
+
+    override fun setLensPosition(lensPosition: Double) = iosOnly("setLensPosition")
+
+    override fun getLensPosition(): Double = iosOnly("getLensPosition")
+
+    override fun setAutoFocusRangeRestriction(restriction: PigeonFocusRangeRestriction) =
+        iosOnly("setAutoFocusRangeRestriction")
+
+    override fun setSmoothAutoFocusEnabled(enabled: Boolean) = iosOnly("setSmoothAutoFocusEnabled")
+
+    override fun setWhiteBalanceMode(mode: PigeonWhiteBalanceMode) = iosOnly("setWhiteBalanceMode")
+
+    override fun setWhiteBalanceGains(gains: PigeonWhiteBalanceGains) =
+        iosOnly("setWhiteBalanceGains")
+
+    override fun setWhiteBalanceTemperatureTint(temperature: Double, tint: Double) =
+        iosOnly("setWhiteBalanceTemperatureTint")
+
+    override fun getWhiteBalanceGains(): PigeonWhiteBalanceGains = iosOnly("getWhiteBalanceGains")
+
+    override fun getMaxWhiteBalanceGain(): Double = iosOnly("getMaxWhiteBalanceGain")
+
+    override fun setGrayWorldWhiteBalance() = iosOnly("setGrayWorldWhiteBalance")
+
+    override fun setTorchMode(mode: PigeonTorchMode) = iosOnly("setTorchMode")
+
+    override fun setTorchLevel(level: Double) = iosOnly("setTorchLevel")
+
+    override fun isTorchActive(): Boolean = iosOnly("isTorchActive")
+
+    override fun setLowLightBoostEnabled(enabled: Boolean) = iosOnly("setLowLightBoostEnabled")
+
+    override fun isLowLightBoostSupported(): Boolean = iosOnly("isLowLightBoostSupported")
+
+    override fun setColorSpace(colorSpace: PigeonColorSpace) = iosOnly("setColorSpace")
+
+    override fun getAvailableColorSpaces(): List<String> = iosOnly("getAvailableColorSpaces")
+
+    override fun setAutoRedEyeReductionEnabled(enabled: Boolean) =
+        iosOnly("setAutoRedEyeReductionEnabled")
+
+    override fun setZoomRatio(ratio: Double) = iosOnly("setZoomRatio")
+
+    override fun getMinZoomRatio(): Double = iosOnly("getMinZoomRatio")
+
+    override fun getMaxZoomRatio(): Double = iosOnly("getMaxZoomRatio")
+
+    override fun rampToZoomRatio(ratio: Double, rate: Double) = iosOnly("rampToZoomRatio")
+
     /// Changing the recording audio mode can't be changed once a recording has starded
     override fun setRecordingAudioMode(
         enableAudio: Boolean, callback: (Result<Boolean>) -> Unit

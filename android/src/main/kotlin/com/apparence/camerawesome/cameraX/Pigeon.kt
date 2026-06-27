@@ -192,6 +192,119 @@ enum class AnalysisRotation(val raw: Int) {
   }
 }
 
+/**
+ * Exposure mode mirroring `AVCaptureDevice.ExposureMode`.
+ * [custom] lets you set ISO and shutter speed manually through
+ * [CameraInterface.setManualExposure].
+ *
+ * iOS only for now.
+ */
+enum class PigeonExposureMode(val raw: Int) {
+  LOCKED(0),
+  AUTO(1),
+  CONTINUOUSAUTO(2),
+  CUSTOM(3);
+
+  companion object {
+    fun ofRaw(raw: Int): PigeonExposureMode? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Focus mode mirroring `AVCaptureDevice.FocusMode`.
+ * When [locked], use [CameraInterface.setLensPosition] to drive the lens
+ * manually.
+ *
+ * iOS only for now.
+ */
+enum class PigeonFocusMode(val raw: Int) {
+  LOCKED(0),
+  AUTO(1),
+  CONTINUOUSAUTO(2);
+
+  companion object {
+    fun ofRaw(raw: Int): PigeonFocusMode? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * White balance mode mirroring `AVCaptureDevice.WhiteBalanceMode`.
+ * When [locked], use [CameraInterface.setWhiteBalanceGains] or
+ * [CameraInterface.setWhiteBalanceTemperatureTint] to set it manually.
+ *
+ * iOS only for now.
+ */
+enum class PigeonWhiteBalanceMode(val raw: Int) {
+  LOCKED(0),
+  AUTO(1),
+  CONTINUOUSAUTO(2);
+
+  companion object {
+    fun ofRaw(raw: Int): PigeonWhiteBalanceMode? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Torch (continuous light) mode mirroring `AVCaptureDevice.TorchMode`.
+ * This is independent from the photo flash configured with
+ * [CameraInterface.setFlashMode].
+ *
+ * iOS only for now.
+ */
+enum class PigeonTorchMode(val raw: Int) {
+  OFF(0),
+  ON(1),
+  AUTO(2);
+
+  companion object {
+    fun ofRaw(raw: Int): PigeonTorchMode? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Auto focus range restriction mirroring
+ * `AVCaptureDevice.AutoFocusRangeRestriction`.
+ *
+ * iOS only for now.
+ */
+enum class PigeonFocusRangeRestriction(val raw: Int) {
+  NONE(0),
+  NEAR(1),
+  FAR(2);
+
+  companion object {
+    fun ofRaw(raw: Int): PigeonFocusRangeRestriction? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Color space mirroring `AVCaptureColorSpace`.
+ *
+ * iOS only for now.
+ */
+enum class PigeonColorSpace(val raw: Int) {
+  SRGB(0),
+  P3D65(1),
+  HLGBT2020(2),
+  APPLELOG(3);
+
+  companion object {
+    fun ofRaw(raw: Int): PigeonColorSpace? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /** Generated class from Pigeon that represents data sent in messages. */
 data class PreviewSize (
   val width: Double,
@@ -520,6 +633,181 @@ data class AnalysisImageWrapper (
   }
 }
 
+/**
+ * Snapshot of the device exposure capabilities and current values.
+ * Durations are expressed in seconds.
+ *
+ * iOS only for now.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PigeonExposureState (
+  val minIso: Double,
+  val maxIso: Double,
+  val currentIso: Double,
+  val minExposureDurationSeconds: Double,
+  val maxExposureDurationSeconds: Double,
+  val currentExposureDurationSeconds: Double,
+  val minExposureTargetBias: Double,
+  val maxExposureTargetBias: Double,
+  val currentExposureTargetBias: Double
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): PigeonExposureState {
+      val minIso = list[0] as Double
+      val maxIso = list[1] as Double
+      val currentIso = list[2] as Double
+      val minExposureDurationSeconds = list[3] as Double
+      val maxExposureDurationSeconds = list[4] as Double
+      val currentExposureDurationSeconds = list[5] as Double
+      val minExposureTargetBias = list[6] as Double
+      val maxExposureTargetBias = list[7] as Double
+      val currentExposureTargetBias = list[8] as Double
+      return PigeonExposureState(minIso, maxIso, currentIso, minExposureDurationSeconds, maxExposureDurationSeconds, currentExposureDurationSeconds, minExposureTargetBias, maxExposureTargetBias, currentExposureTargetBias)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      minIso,
+      maxIso,
+      currentIso,
+      minExposureDurationSeconds,
+      maxExposureDurationSeconds,
+      currentExposureDurationSeconds,
+      minExposureTargetBias,
+      maxExposureTargetBias,
+      currentExposureTargetBias,
+    )
+  }
+}
+
+/**
+ * RGB white balance gains mirroring
+ * `AVCaptureDevice.WhiteBalanceGains`.
+ *
+ * iOS only for now.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PigeonWhiteBalanceGains (
+  val red: Double,
+  val green: Double,
+  val blue: Double
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): PigeonWhiteBalanceGains {
+      val red = list[0] as Double
+      val green = list[1] as Double
+      val blue = list[2] as Double
+      return PigeonWhiteBalanceGains(red, green, blue)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      red,
+      green,
+      blue,
+    )
+  }
+}
+
+/**
+ * A snapshot of the current device photo control values **and** their
+ * supported ranges, read directly from `AVCaptureDevice`. Useful to
+ * initialize a UI with the values that are actually applied.
+ *
+ * iOS only for now.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PigeonCameraSettings (
+  val exposureMode: PigeonExposureMode,
+  val exposureTargetBias: Double,
+  val minExposureTargetBias: Double,
+  val maxExposureTargetBias: Double,
+  val iso: Double,
+  val minIso: Double,
+  val maxIso: Double,
+  val exposureDurationSeconds: Double,
+  val minExposureDurationSeconds: Double,
+  val maxExposureDurationSeconds: Double,
+  val focusMode: PigeonFocusMode,
+  val lensPosition: Double,
+  val whiteBalanceMode: PigeonWhiteBalanceMode,
+  val temperature: Double,
+  val tint: Double,
+  val torchMode: PigeonTorchMode,
+  val torchActive: Boolean,
+  val lowLightBoostEnabled: Boolean,
+  val colorSpace: PigeonColorSpace,
+  val autoRedEyeReductionEnabled: Boolean,
+  val zoomRatio: Double,
+  val minZoomRatio: Double,
+  val maxZoomRatio: Double
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): PigeonCameraSettings {
+      val exposureMode = PigeonExposureMode.ofRaw(list[0] as Int)!!
+      val exposureTargetBias = list[1] as Double
+      val minExposureTargetBias = list[2] as Double
+      val maxExposureTargetBias = list[3] as Double
+      val iso = list[4] as Double
+      val minIso = list[5] as Double
+      val maxIso = list[6] as Double
+      val exposureDurationSeconds = list[7] as Double
+      val minExposureDurationSeconds = list[8] as Double
+      val maxExposureDurationSeconds = list[9] as Double
+      val focusMode = PigeonFocusMode.ofRaw(list[10] as Int)!!
+      val lensPosition = list[11] as Double
+      val whiteBalanceMode = PigeonWhiteBalanceMode.ofRaw(list[12] as Int)!!
+      val temperature = list[13] as Double
+      val tint = list[14] as Double
+      val torchMode = PigeonTorchMode.ofRaw(list[15] as Int)!!
+      val torchActive = list[16] as Boolean
+      val lowLightBoostEnabled = list[17] as Boolean
+      val colorSpace = PigeonColorSpace.ofRaw(list[18] as Int)!!
+      val autoRedEyeReductionEnabled = list[19] as Boolean
+      val zoomRatio = list[20] as Double
+      val minZoomRatio = list[21] as Double
+      val maxZoomRatio = list[22] as Double
+      return PigeonCameraSettings(exposureMode, exposureTargetBias, minExposureTargetBias, maxExposureTargetBias, iso, minIso, maxIso, exposureDurationSeconds, minExposureDurationSeconds, maxExposureDurationSeconds, focusMode, lensPosition, whiteBalanceMode, temperature, tint, torchMode, torchActive, lowLightBoostEnabled, colorSpace, autoRedEyeReductionEnabled, zoomRatio, minZoomRatio, maxZoomRatio)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      exposureMode.raw,
+      exposureTargetBias,
+      minExposureTargetBias,
+      maxExposureTargetBias,
+      iso,
+      minIso,
+      maxIso,
+      exposureDurationSeconds,
+      minExposureDurationSeconds,
+      maxExposureDurationSeconds,
+      focusMode.raw,
+      lensPosition,
+      whiteBalanceMode.raw,
+      temperature,
+      tint,
+      torchMode.raw,
+      torchActive,
+      lowLightBoostEnabled,
+      colorSpace.raw,
+      autoRedEyeReductionEnabled,
+      zoomRatio,
+      minZoomRatio,
+      maxZoomRatio,
+    )
+  }
+}
+
 @Suppress("UNCHECKED_CAST")
 private object AnalysisImageUtilsCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
@@ -688,25 +976,40 @@ private object CameraInterfaceCodec : StandardMessageCodec() {
       }
       132.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PigeonSensor.fromList(it)
+          PigeonCameraSettings.fromList(it)
         }
       }
       133.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PigeonSensorTypeDevice.fromList(it)
+          PigeonExposureState.fromList(it)
         }
       }
       134.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PreviewSize.fromList(it)
+          PigeonSensor.fromList(it)
         }
       }
       135.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PreviewSize.fromList(it)
+          PigeonSensorTypeDevice.fromList(it)
         }
       }
       136.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PigeonWhiteBalanceGains.fromList(it)
+        }
+      }
+      137.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PreviewSize.fromList(it)
+        }
+      }
+      138.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PreviewSize.fromList(it)
+        }
+      }
+      139.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           VideoOptions.fromList(it)
         }
@@ -732,24 +1035,36 @@ private object CameraInterfaceCodec : StandardMessageCodec() {
         stream.write(131)
         writeValue(stream, value.toList())
       }
-      is PigeonSensor -> {
+      is PigeonCameraSettings -> {
         stream.write(132)
         writeValue(stream, value.toList())
       }
-      is PigeonSensorTypeDevice -> {
+      is PigeonExposureState -> {
         stream.write(133)
         writeValue(stream, value.toList())
       }
-      is PreviewSize -> {
+      is PigeonSensor -> {
         stream.write(134)
         writeValue(stream, value.toList())
       }
-      is PreviewSize -> {
+      is PigeonSensorTypeDevice -> {
         stream.write(135)
         writeValue(stream, value.toList())
       }
-      is VideoOptions -> {
+      is PigeonWhiteBalanceGains -> {
         stream.write(136)
+        writeValue(stream, value.toList())
+      }
+      is PreviewSize -> {
+        stream.write(137)
+        writeValue(stream, value.toList())
+      }
+      is PreviewSize -> {
+        stream.write(138)
+        writeValue(stream, value.toList())
+      }
+      is VideoOptions -> {
+        stream.write(139)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -807,6 +1122,87 @@ interface CameraInterface {
   fun setFilter(matrix: List<Double>)
   fun isVideoRecordingAndImageAnalysisSupported(sensor: PigeonSensorPosition, callback: (Result<Boolean>) -> Unit)
   fun isMultiCamSupported(): Boolean
+  /** Set the [AVCaptureExposureMode]. See [PigeonExposureMode]. */
+  fun setExposureMode(mode: PigeonExposureMode)
+  /**
+   * Set the exposure point of interest at ([x], [y]) expressed in the
+   * [previewSize] coordinate space.
+   */
+  fun setExposurePoint(x: Double, y: Double, previewSize: PreviewSize)
+  /**
+   * Set the absolute exposure target bias (EV), clamped to the device
+   * supported range. Unlike [setCorrection] this takes a raw EV value.
+   */
+  fun setExposureTargetBias(bias: Double)
+  /**
+   * Switch to custom exposure with the given [iso] and shutter speed
+   * [exposureDurationSeconds] (in seconds), both clamped to the supported
+   * range of the active format.
+   */
+  fun setManualExposure(iso: Double, exposureDurationSeconds: Double)
+  /** Returns the current exposure capabilities and values of the device. */
+  fun getExposureState(): PigeonExposureState
+  /**
+   * Returns a snapshot of all current photo control values and their
+   * supported ranges, read directly from the active device. Useful to
+   * initialize a UI with the values actually applied.
+   */
+  fun getCameraSettings(): PigeonCameraSettings
+  /** Set the [AVCaptureFocusMode]. See [PigeonFocusMode]. */
+  fun setFocusMode(mode: PigeonFocusMode)
+  /** Lock the focus at the given [lensPosition] (0.0 nearest, 1.0 farthest). */
+  fun setLensPosition(lensPosition: Double)
+  /** Returns the current lens position (0.0 to 1.0). */
+  fun getLensPosition(): Double
+  /** Set the [AVCaptureDevice.AutoFocusRangeRestriction]. */
+  fun setAutoFocusRangeRestriction(restriction: PigeonFocusRangeRestriction)
+  /** Enable or disable smooth autofocus. */
+  fun setSmoothAutoFocusEnabled(enabled: Boolean)
+  /** Set the [AVCaptureWhiteBalanceMode]. See [PigeonWhiteBalanceMode]. */
+  fun setWhiteBalanceMode(mode: PigeonWhiteBalanceMode)
+  /** Lock the white balance using the given device RGB [gains]. */
+  fun setWhiteBalanceGains(gains: PigeonWhiteBalanceGains)
+  /** Lock the white balance using a [temperature] (Kelvin) and [tint]. */
+  fun setWhiteBalanceTemperatureTint(temperature: Double, tint: Double)
+  /** Returns the current device white balance gains. */
+  fun getWhiteBalanceGains(): PigeonWhiteBalanceGains
+  /** Returns the maximum supported white balance gain for the active device. */
+  fun getMaxWhiteBalanceGain(): Double
+  /** Lock the white balance using the gray world estimate of the current scene. */
+  fun setGrayWorldWhiteBalance()
+  /**
+   * Set the [AVCaptureTorchMode]. See [PigeonTorchMode]. Independent of the
+   * photo flash configured through [setFlashMode].
+   */
+  fun setTorchMode(mode: PigeonTorchMode)
+  /** Turn on the torch at the given [level] (0.0 to 1.0). */
+  fun setTorchLevel(level: Double)
+  /** Returns whether the torch is currently active. */
+  fun isTorchActive(): Boolean
+  /** Enable or disable automatic low light boost when available. */
+  fun setLowLightBoostEnabled(enabled: Boolean)
+  /** Returns whether low light boost is supported by the active device. */
+  fun isLowLightBoostSupported(): Boolean
+  /** Set the active [AVCaptureColorSpace]. See [PigeonColorSpace]. */
+  fun setColorSpace(colorSpace: PigeonColorSpace)
+  /**
+   * Returns the color spaces supported by the active format (as names of
+   * [PigeonColorSpace]).
+   */
+  fun getAvailableColorSpaces(): List<String>
+  /** Enable or disable automatic red eye reduction on the photo output. */
+  fun setAutoRedEyeReductionEnabled(enabled: Boolean)
+  /**
+   * Set the absolute zoom factor (videoZoomFactor), clamped to the supported
+   * range.
+   */
+  fun setZoomRatio(ratio: Double)
+  /** Returns the minimum available zoom factor. */
+  fun getMinZoomRatio(): Double
+  /** Returns the maximum available zoom factor. */
+  fun getMaxZoomRatio(): Double
+  /** Smoothly ramp the zoom to [ratio] at the given [rate]. */
+  fun rampToZoomRatio(ratio: Double, rate: Double)
 
   companion object {
     /** The codec used by CameraInterface. */
@@ -1510,6 +1906,530 @@ interface CameraInterface {
             var wrapped: List<Any?>
             try {
               wrapped = listOf<Any?>(api.isMultiCamSupported())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setExposureMode", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val modeArg = PigeonExposureMode.ofRaw(args[0] as Int)!!
+            var wrapped: List<Any?>
+            try {
+              api.setExposureMode(modeArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setExposurePoint", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val xArg = args[0] as Double
+            val yArg = args[1] as Double
+            val previewSizeArg = args[2] as PreviewSize
+            var wrapped: List<Any?>
+            try {
+              api.setExposurePoint(xArg, yArg, previewSizeArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setExposureTargetBias", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val biasArg = args[0] as Double
+            var wrapped: List<Any?>
+            try {
+              api.setExposureTargetBias(biasArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setManualExposure", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val isoArg = args[0] as Double
+            val exposureDurationSecondsArg = args[1] as Double
+            var wrapped: List<Any?>
+            try {
+              api.setManualExposure(isoArg, exposureDurationSecondsArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.getExposureState", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.getExposureState())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.getCameraSettings", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.getCameraSettings())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setFocusMode", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val modeArg = PigeonFocusMode.ofRaw(args[0] as Int)!!
+            var wrapped: List<Any?>
+            try {
+              api.setFocusMode(modeArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setLensPosition", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val lensPositionArg = args[0] as Double
+            var wrapped: List<Any?>
+            try {
+              api.setLensPosition(lensPositionArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.getLensPosition", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.getLensPosition())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setAutoFocusRangeRestriction", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val restrictionArg = PigeonFocusRangeRestriction.ofRaw(args[0] as Int)!!
+            var wrapped: List<Any?>
+            try {
+              api.setAutoFocusRangeRestriction(restrictionArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setSmoothAutoFocusEnabled", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val enabledArg = args[0] as Boolean
+            var wrapped: List<Any?>
+            try {
+              api.setSmoothAutoFocusEnabled(enabledArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setWhiteBalanceMode", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val modeArg = PigeonWhiteBalanceMode.ofRaw(args[0] as Int)!!
+            var wrapped: List<Any?>
+            try {
+              api.setWhiteBalanceMode(modeArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setWhiteBalanceGains", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val gainsArg = args[0] as PigeonWhiteBalanceGains
+            var wrapped: List<Any?>
+            try {
+              api.setWhiteBalanceGains(gainsArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setWhiteBalanceTemperatureTint", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val temperatureArg = args[0] as Double
+            val tintArg = args[1] as Double
+            var wrapped: List<Any?>
+            try {
+              api.setWhiteBalanceTemperatureTint(temperatureArg, tintArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.getWhiteBalanceGains", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.getWhiteBalanceGains())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.getMaxWhiteBalanceGain", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.getMaxWhiteBalanceGain())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setGrayWorldWhiteBalance", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              api.setGrayWorldWhiteBalance()
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setTorchMode", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val modeArg = PigeonTorchMode.ofRaw(args[0] as Int)!!
+            var wrapped: List<Any?>
+            try {
+              api.setTorchMode(modeArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setTorchLevel", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val levelArg = args[0] as Double
+            var wrapped: List<Any?>
+            try {
+              api.setTorchLevel(levelArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.isTorchActive", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.isTorchActive())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setLowLightBoostEnabled", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val enabledArg = args[0] as Boolean
+            var wrapped: List<Any?>
+            try {
+              api.setLowLightBoostEnabled(enabledArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.isLowLightBoostSupported", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.isLowLightBoostSupported())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setColorSpace", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val colorSpaceArg = PigeonColorSpace.ofRaw(args[0] as Int)!!
+            var wrapped: List<Any?>
+            try {
+              api.setColorSpace(colorSpaceArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.getAvailableColorSpaces", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.getAvailableColorSpaces())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setAutoRedEyeReductionEnabled", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val enabledArg = args[0] as Boolean
+            var wrapped: List<Any?>
+            try {
+              api.setAutoRedEyeReductionEnabled(enabledArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setZoomRatio", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val ratioArg = args[0] as Double
+            var wrapped: List<Any?>
+            try {
+              api.setZoomRatio(ratioArg)
+              wrapped = listOf<Any?>(null)
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.getMinZoomRatio", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.getMinZoomRatio())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.getMaxZoomRatio", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            var wrapped: List<Any?>
+            try {
+              wrapped = listOf<Any?>(api.getMaxZoomRatio())
+            } catch (exception: Throwable) {
+              wrapped = wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.rampToZoomRatio", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val ratioArg = args[0] as Double
+            val rateArg = args[1] as Double
+            var wrapped: List<Any?>
+            try {
+              api.rampToZoomRatio(ratioArg, rateArg)
+              wrapped = listOf<Any?>(null)
             } catch (exception: Throwable) {
               wrapped = wrapError(exception)
             }

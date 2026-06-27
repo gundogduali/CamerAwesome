@@ -320,6 +320,183 @@ abstract class AnalysisImageUtils {
   );
 }
 
+/// Exposure mode mirroring `AVCaptureDevice.ExposureMode`.
+/// [custom] lets you set ISO and shutter speed manually through
+/// [CameraInterface.setManualExposure].
+///
+/// iOS only for now.
+enum PigeonExposureMode {
+  locked,
+  auto,
+  continuousAuto,
+  custom,
+}
+
+/// Focus mode mirroring `AVCaptureDevice.FocusMode`.
+/// When [locked], use [CameraInterface.setLensPosition] to drive the lens
+/// manually.
+///
+/// iOS only for now.
+enum PigeonFocusMode {
+  locked,
+  auto,
+  continuousAuto,
+}
+
+/// White balance mode mirroring `AVCaptureDevice.WhiteBalanceMode`.
+/// When [locked], use [CameraInterface.setWhiteBalanceGains] or
+/// [CameraInterface.setWhiteBalanceTemperatureTint] to set it manually.
+///
+/// iOS only for now.
+enum PigeonWhiteBalanceMode {
+  locked,
+  auto,
+  continuousAuto,
+}
+
+/// Torch (continuous light) mode mirroring `AVCaptureDevice.TorchMode`.
+/// This is independent from the photo flash configured with
+/// [CameraInterface.setFlashMode].
+///
+/// iOS only for now.
+enum PigeonTorchMode {
+  off,
+  on,
+  auto,
+}
+
+/// Auto focus range restriction mirroring
+/// `AVCaptureDevice.AutoFocusRangeRestriction`.
+///
+/// iOS only for now.
+enum PigeonFocusRangeRestriction {
+  none,
+  near,
+  far,
+}
+
+/// Color space mirroring `AVCaptureColorSpace`.
+///
+/// iOS only for now.
+enum PigeonColorSpace {
+  sRGB,
+  p3D65,
+  hlgBT2020,
+  appleLog,
+}
+
+/// Snapshot of the device exposure capabilities and current values.
+/// Durations are expressed in seconds.
+///
+/// iOS only for now.
+class PigeonExposureState {
+  final double minIso;
+  final double maxIso;
+  final double currentIso;
+  final double minExposureDurationSeconds;
+  final double maxExposureDurationSeconds;
+  final double currentExposureDurationSeconds;
+  final double minExposureTargetBias;
+  final double maxExposureTargetBias;
+  final double currentExposureTargetBias;
+
+  PigeonExposureState({
+    required this.minIso,
+    required this.maxIso,
+    required this.currentIso,
+    required this.minExposureDurationSeconds,
+    required this.maxExposureDurationSeconds,
+    required this.currentExposureDurationSeconds,
+    required this.minExposureTargetBias,
+    required this.maxExposureTargetBias,
+    required this.currentExposureTargetBias,
+  });
+}
+
+/// RGB white balance gains mirroring
+/// `AVCaptureDevice.WhiteBalanceGains`.
+///
+/// iOS only for now.
+class PigeonWhiteBalanceGains {
+  final double red;
+  final double green;
+  final double blue;
+
+  PigeonWhiteBalanceGains({
+    required this.red,
+    required this.green,
+    required this.blue,
+  });
+}
+
+/// A snapshot of the current device photo control values **and** their
+/// supported ranges, read directly from `AVCaptureDevice`. Useful to
+/// initialize a UI with the values that are actually applied.
+///
+/// iOS only for now.
+class PigeonCameraSettings {
+  // Exposure
+  final PigeonExposureMode exposureMode;
+  final double exposureTargetBias;
+  final double minExposureTargetBias;
+  final double maxExposureTargetBias;
+  final double iso;
+  final double minIso;
+  final double maxIso;
+  final double exposureDurationSeconds;
+  final double minExposureDurationSeconds;
+  final double maxExposureDurationSeconds;
+
+  // Focus
+  final PigeonFocusMode focusMode;
+  final double lensPosition;
+
+  // White balance
+  final PigeonWhiteBalanceMode whiteBalanceMode;
+  final double temperature;
+  final double tint;
+
+  // Lighting
+  final PigeonTorchMode torchMode;
+  final bool torchActive;
+  final bool lowLightBoostEnabled;
+
+  // Color
+  final PigeonColorSpace colorSpace;
+  final bool autoRedEyeReductionEnabled;
+
+  // Zoom
+  final double zoomRatio;
+  final double minZoomRatio;
+  final double maxZoomRatio;
+
+  PigeonCameraSettings({
+    required this.exposureMode,
+    required this.exposureTargetBias,
+    required this.minExposureTargetBias,
+    required this.maxExposureTargetBias,
+    required this.iso,
+    required this.minIso,
+    required this.maxIso,
+    required this.exposureDurationSeconds,
+    required this.minExposureDurationSeconds,
+    required this.maxExposureDurationSeconds,
+    required this.focusMode,
+    required this.lensPosition,
+    required this.whiteBalanceMode,
+    required this.temperature,
+    required this.tint,
+    required this.torchMode,
+    required this.torchActive,
+    required this.lowLightBoostEnabled,
+    required this.colorSpace,
+    required this.autoRedEyeReductionEnabled,
+    required this.zoomRatio,
+    required this.minZoomRatio,
+    required this.maxZoomRatio,
+  });
+}
+
 @HostApi()
 abstract class CameraInterface {
   @async
@@ -434,4 +611,116 @@ abstract class CameraInterface {
   bool isVideoRecordingAndImageAnalysisSupported(PigeonSensorPosition sensor);
 
   bool isMultiCamSupported();
+
+  // ---------------------------------------------------------------------------
+  // AVFoundation photo controls (iOS only for now, Android throws unimplemented)
+  // ---------------------------------------------------------------------------
+
+  // --- Exposure ---
+
+  /// Set the [AVCaptureExposureMode]. See [PigeonExposureMode].
+  void setExposureMode(PigeonExposureMode mode);
+
+  /// Set the exposure point of interest at ([x], [y]) expressed in the
+  /// [previewSize] coordinate space.
+  void setExposurePoint(double x, double y, PreviewSize previewSize);
+
+  /// Set the absolute exposure target bias (EV), clamped to the device
+  /// supported range. Unlike [setCorrection] this takes a raw EV value.
+  void setExposureTargetBias(double bias);
+
+  /// Switch to custom exposure with the given [iso] and shutter speed
+  /// [exposureDurationSeconds] (in seconds), both clamped to the supported
+  /// range of the active format.
+  void setManualExposure(double iso, double exposureDurationSeconds);
+
+  /// Returns the current exposure capabilities and values of the device.
+  PigeonExposureState getExposureState();
+
+  /// Returns a snapshot of all current photo control values and their
+  /// supported ranges, read directly from the active device. Useful to
+  /// initialize a UI with the values actually applied.
+  PigeonCameraSettings getCameraSettings();
+
+  // --- Focus ---
+
+  /// Set the [AVCaptureFocusMode]. See [PigeonFocusMode].
+  void setFocusMode(PigeonFocusMode mode);
+
+  /// Lock the focus at the given [lensPosition] (0.0 nearest, 1.0 farthest).
+  void setLensPosition(double lensPosition);
+
+  /// Returns the current lens position (0.0 to 1.0).
+  double getLensPosition();
+
+  /// Set the [AVCaptureDevice.AutoFocusRangeRestriction].
+  void setAutoFocusRangeRestriction(PigeonFocusRangeRestriction restriction);
+
+  /// Enable or disable smooth autofocus.
+  void setSmoothAutoFocusEnabled(bool enabled);
+
+  // --- White balance ---
+
+  /// Set the [AVCaptureWhiteBalanceMode]. See [PigeonWhiteBalanceMode].
+  void setWhiteBalanceMode(PigeonWhiteBalanceMode mode);
+
+  /// Lock the white balance using the given device RGB [gains].
+  void setWhiteBalanceGains(PigeonWhiteBalanceGains gains);
+
+  /// Lock the white balance using a [temperature] (Kelvin) and [tint].
+  void setWhiteBalanceTemperatureTint(double temperature, double tint);
+
+  /// Returns the current device white balance gains.
+  PigeonWhiteBalanceGains getWhiteBalanceGains();
+
+  /// Returns the maximum supported white balance gain for the active device.
+  double getMaxWhiteBalanceGain();
+
+  /// Lock the white balance using the gray world estimate of the current scene.
+  void setGrayWorldWhiteBalance();
+
+  // --- Lighting (torch + low light boost) ---
+
+  /// Set the [AVCaptureTorchMode]. See [PigeonTorchMode]. Independent of the
+  /// photo flash configured through [setFlashMode].
+  void setTorchMode(PigeonTorchMode mode);
+
+  /// Turn on the torch at the given [level] (0.0 to 1.0).
+  void setTorchLevel(double level);
+
+  /// Returns whether the torch is currently active.
+  bool isTorchActive();
+
+  /// Enable or disable automatic low light boost when available.
+  void setLowLightBoostEnabled(bool enabled);
+
+  /// Returns whether low light boost is supported by the active device.
+  bool isLowLightBoostSupported();
+
+  // --- Color ---
+
+  /// Set the active [AVCaptureColorSpace]. See [PigeonColorSpace].
+  void setColorSpace(PigeonColorSpace colorSpace);
+
+  /// Returns the color spaces supported by the active format (as names of
+  /// [PigeonColorSpace]).
+  List<String> getAvailableColorSpaces();
+
+  /// Enable or disable automatic red eye reduction on the photo output.
+  void setAutoRedEyeReductionEnabled(bool enabled);
+
+  // --- Zoom (ratio based, complementing the normalized [setZoom]) ---
+
+  /// Set the absolute zoom factor (videoZoomFactor), clamped to the supported
+  /// range.
+  void setZoomRatio(double ratio);
+
+  /// Returns the minimum available zoom factor.
+  double getMinZoomRatio();
+
+  /// Returns the maximum available zoom factor.
+  double getMaxZoomRatio();
+
+  /// Smoothly ramp the zoom to [ratio] at the given [rate].
+  void rampToZoomRatio(double ratio, double rate);
 }

@@ -87,6 +87,24 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList;
 @end
 
+@interface PigeonExposureState ()
++ (PigeonExposureState *)fromList:(NSArray *)list;
++ (nullable PigeonExposureState *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
+@interface PigeonWhiteBalanceGains ()
++ (PigeonWhiteBalanceGains *)fromList:(NSArray *)list;
++ (nullable PigeonWhiteBalanceGains *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
+@interface PigeonCameraSettings ()
++ (PigeonCameraSettings *)fromList:(NSArray *)list;
++ (nullable PigeonCameraSettings *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
 @implementation PreviewSize
 + (instancetype)makeWithWidth:(NSNumber *)width
     height:(NSNumber *)height {
@@ -439,6 +457,227 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 }
 @end
 
+@implementation PigeonExposureState
++ (instancetype)makeWithMinIso:(NSNumber *)minIso
+    maxIso:(NSNumber *)maxIso
+    currentIso:(NSNumber *)currentIso
+    minExposureDurationSeconds:(NSNumber *)minExposureDurationSeconds
+    maxExposureDurationSeconds:(NSNumber *)maxExposureDurationSeconds
+    currentExposureDurationSeconds:(NSNumber *)currentExposureDurationSeconds
+    minExposureTargetBias:(NSNumber *)minExposureTargetBias
+    maxExposureTargetBias:(NSNumber *)maxExposureTargetBias
+    currentExposureTargetBias:(NSNumber *)currentExposureTargetBias {
+  PigeonExposureState* pigeonResult = [[PigeonExposureState alloc] init];
+  pigeonResult.minIso = minIso;
+  pigeonResult.maxIso = maxIso;
+  pigeonResult.currentIso = currentIso;
+  pigeonResult.minExposureDurationSeconds = minExposureDurationSeconds;
+  pigeonResult.maxExposureDurationSeconds = maxExposureDurationSeconds;
+  pigeonResult.currentExposureDurationSeconds = currentExposureDurationSeconds;
+  pigeonResult.minExposureTargetBias = minExposureTargetBias;
+  pigeonResult.maxExposureTargetBias = maxExposureTargetBias;
+  pigeonResult.currentExposureTargetBias = currentExposureTargetBias;
+  return pigeonResult;
+}
++ (PigeonExposureState *)fromList:(NSArray *)list {
+  PigeonExposureState *pigeonResult = [[PigeonExposureState alloc] init];
+  pigeonResult.minIso = GetNullableObjectAtIndex(list, 0);
+  NSAssert(pigeonResult.minIso != nil, @"");
+  pigeonResult.maxIso = GetNullableObjectAtIndex(list, 1);
+  NSAssert(pigeonResult.maxIso != nil, @"");
+  pigeonResult.currentIso = GetNullableObjectAtIndex(list, 2);
+  NSAssert(pigeonResult.currentIso != nil, @"");
+  pigeonResult.minExposureDurationSeconds = GetNullableObjectAtIndex(list, 3);
+  NSAssert(pigeonResult.minExposureDurationSeconds != nil, @"");
+  pigeonResult.maxExposureDurationSeconds = GetNullableObjectAtIndex(list, 4);
+  NSAssert(pigeonResult.maxExposureDurationSeconds != nil, @"");
+  pigeonResult.currentExposureDurationSeconds = GetNullableObjectAtIndex(list, 5);
+  NSAssert(pigeonResult.currentExposureDurationSeconds != nil, @"");
+  pigeonResult.minExposureTargetBias = GetNullableObjectAtIndex(list, 6);
+  NSAssert(pigeonResult.minExposureTargetBias != nil, @"");
+  pigeonResult.maxExposureTargetBias = GetNullableObjectAtIndex(list, 7);
+  NSAssert(pigeonResult.maxExposureTargetBias != nil, @"");
+  pigeonResult.currentExposureTargetBias = GetNullableObjectAtIndex(list, 8);
+  NSAssert(pigeonResult.currentExposureTargetBias != nil, @"");
+  return pigeonResult;
+}
++ (nullable PigeonExposureState *)nullableFromList:(NSArray *)list {
+  return (list) ? [PigeonExposureState fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    (self.minIso ?: [NSNull null]),
+    (self.maxIso ?: [NSNull null]),
+    (self.currentIso ?: [NSNull null]),
+    (self.minExposureDurationSeconds ?: [NSNull null]),
+    (self.maxExposureDurationSeconds ?: [NSNull null]),
+    (self.currentExposureDurationSeconds ?: [NSNull null]),
+    (self.minExposureTargetBias ?: [NSNull null]),
+    (self.maxExposureTargetBias ?: [NSNull null]),
+    (self.currentExposureTargetBias ?: [NSNull null]),
+  ];
+}
+@end
+
+@implementation PigeonWhiteBalanceGains
++ (instancetype)makeWithRed:(NSNumber *)red
+    green:(NSNumber *)green
+    blue:(NSNumber *)blue {
+  PigeonWhiteBalanceGains* pigeonResult = [[PigeonWhiteBalanceGains alloc] init];
+  pigeonResult.red = red;
+  pigeonResult.green = green;
+  pigeonResult.blue = blue;
+  return pigeonResult;
+}
++ (PigeonWhiteBalanceGains *)fromList:(NSArray *)list {
+  PigeonWhiteBalanceGains *pigeonResult = [[PigeonWhiteBalanceGains alloc] init];
+  pigeonResult.red = GetNullableObjectAtIndex(list, 0);
+  NSAssert(pigeonResult.red != nil, @"");
+  pigeonResult.green = GetNullableObjectAtIndex(list, 1);
+  NSAssert(pigeonResult.green != nil, @"");
+  pigeonResult.blue = GetNullableObjectAtIndex(list, 2);
+  NSAssert(pigeonResult.blue != nil, @"");
+  return pigeonResult;
+}
++ (nullable PigeonWhiteBalanceGains *)nullableFromList:(NSArray *)list {
+  return (list) ? [PigeonWhiteBalanceGains fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    (self.red ?: [NSNull null]),
+    (self.green ?: [NSNull null]),
+    (self.blue ?: [NSNull null]),
+  ];
+}
+@end
+
+@implementation PigeonCameraSettings
++ (instancetype)makeWithExposureMode:(PigeonExposureMode)exposureMode
+    exposureTargetBias:(NSNumber *)exposureTargetBias
+    minExposureTargetBias:(NSNumber *)minExposureTargetBias
+    maxExposureTargetBias:(NSNumber *)maxExposureTargetBias
+    iso:(NSNumber *)iso
+    minIso:(NSNumber *)minIso
+    maxIso:(NSNumber *)maxIso
+    exposureDurationSeconds:(NSNumber *)exposureDurationSeconds
+    minExposureDurationSeconds:(NSNumber *)minExposureDurationSeconds
+    maxExposureDurationSeconds:(NSNumber *)maxExposureDurationSeconds
+    focusMode:(PigeonFocusMode)focusMode
+    lensPosition:(NSNumber *)lensPosition
+    whiteBalanceMode:(PigeonWhiteBalanceMode)whiteBalanceMode
+    temperature:(NSNumber *)temperature
+    tint:(NSNumber *)tint
+    torchMode:(PigeonTorchMode)torchMode
+    torchActive:(NSNumber *)torchActive
+    lowLightBoostEnabled:(NSNumber *)lowLightBoostEnabled
+    colorSpace:(PigeonColorSpace)colorSpace
+    autoRedEyeReductionEnabled:(NSNumber *)autoRedEyeReductionEnabled
+    zoomRatio:(NSNumber *)zoomRatio
+    minZoomRatio:(NSNumber *)minZoomRatio
+    maxZoomRatio:(NSNumber *)maxZoomRatio {
+  PigeonCameraSettings* pigeonResult = [[PigeonCameraSettings alloc] init];
+  pigeonResult.exposureMode = exposureMode;
+  pigeonResult.exposureTargetBias = exposureTargetBias;
+  pigeonResult.minExposureTargetBias = minExposureTargetBias;
+  pigeonResult.maxExposureTargetBias = maxExposureTargetBias;
+  pigeonResult.iso = iso;
+  pigeonResult.minIso = minIso;
+  pigeonResult.maxIso = maxIso;
+  pigeonResult.exposureDurationSeconds = exposureDurationSeconds;
+  pigeonResult.minExposureDurationSeconds = minExposureDurationSeconds;
+  pigeonResult.maxExposureDurationSeconds = maxExposureDurationSeconds;
+  pigeonResult.focusMode = focusMode;
+  pigeonResult.lensPosition = lensPosition;
+  pigeonResult.whiteBalanceMode = whiteBalanceMode;
+  pigeonResult.temperature = temperature;
+  pigeonResult.tint = tint;
+  pigeonResult.torchMode = torchMode;
+  pigeonResult.torchActive = torchActive;
+  pigeonResult.lowLightBoostEnabled = lowLightBoostEnabled;
+  pigeonResult.colorSpace = colorSpace;
+  pigeonResult.autoRedEyeReductionEnabled = autoRedEyeReductionEnabled;
+  pigeonResult.zoomRatio = zoomRatio;
+  pigeonResult.minZoomRatio = minZoomRatio;
+  pigeonResult.maxZoomRatio = maxZoomRatio;
+  return pigeonResult;
+}
++ (PigeonCameraSettings *)fromList:(NSArray *)list {
+  PigeonCameraSettings *pigeonResult = [[PigeonCameraSettings alloc] init];
+  pigeonResult.exposureMode = [GetNullableObjectAtIndex(list, 0) integerValue];
+  pigeonResult.exposureTargetBias = GetNullableObjectAtIndex(list, 1);
+  NSAssert(pigeonResult.exposureTargetBias != nil, @"");
+  pigeonResult.minExposureTargetBias = GetNullableObjectAtIndex(list, 2);
+  NSAssert(pigeonResult.minExposureTargetBias != nil, @"");
+  pigeonResult.maxExposureTargetBias = GetNullableObjectAtIndex(list, 3);
+  NSAssert(pigeonResult.maxExposureTargetBias != nil, @"");
+  pigeonResult.iso = GetNullableObjectAtIndex(list, 4);
+  NSAssert(pigeonResult.iso != nil, @"");
+  pigeonResult.minIso = GetNullableObjectAtIndex(list, 5);
+  NSAssert(pigeonResult.minIso != nil, @"");
+  pigeonResult.maxIso = GetNullableObjectAtIndex(list, 6);
+  NSAssert(pigeonResult.maxIso != nil, @"");
+  pigeonResult.exposureDurationSeconds = GetNullableObjectAtIndex(list, 7);
+  NSAssert(pigeonResult.exposureDurationSeconds != nil, @"");
+  pigeonResult.minExposureDurationSeconds = GetNullableObjectAtIndex(list, 8);
+  NSAssert(pigeonResult.minExposureDurationSeconds != nil, @"");
+  pigeonResult.maxExposureDurationSeconds = GetNullableObjectAtIndex(list, 9);
+  NSAssert(pigeonResult.maxExposureDurationSeconds != nil, @"");
+  pigeonResult.focusMode = [GetNullableObjectAtIndex(list, 10) integerValue];
+  pigeonResult.lensPosition = GetNullableObjectAtIndex(list, 11);
+  NSAssert(pigeonResult.lensPosition != nil, @"");
+  pigeonResult.whiteBalanceMode = [GetNullableObjectAtIndex(list, 12) integerValue];
+  pigeonResult.temperature = GetNullableObjectAtIndex(list, 13);
+  NSAssert(pigeonResult.temperature != nil, @"");
+  pigeonResult.tint = GetNullableObjectAtIndex(list, 14);
+  NSAssert(pigeonResult.tint != nil, @"");
+  pigeonResult.torchMode = [GetNullableObjectAtIndex(list, 15) integerValue];
+  pigeonResult.torchActive = GetNullableObjectAtIndex(list, 16);
+  NSAssert(pigeonResult.torchActive != nil, @"");
+  pigeonResult.lowLightBoostEnabled = GetNullableObjectAtIndex(list, 17);
+  NSAssert(pigeonResult.lowLightBoostEnabled != nil, @"");
+  pigeonResult.colorSpace = [GetNullableObjectAtIndex(list, 18) integerValue];
+  pigeonResult.autoRedEyeReductionEnabled = GetNullableObjectAtIndex(list, 19);
+  NSAssert(pigeonResult.autoRedEyeReductionEnabled != nil, @"");
+  pigeonResult.zoomRatio = GetNullableObjectAtIndex(list, 20);
+  NSAssert(pigeonResult.zoomRatio != nil, @"");
+  pigeonResult.minZoomRatio = GetNullableObjectAtIndex(list, 21);
+  NSAssert(pigeonResult.minZoomRatio != nil, @"");
+  pigeonResult.maxZoomRatio = GetNullableObjectAtIndex(list, 22);
+  NSAssert(pigeonResult.maxZoomRatio != nil, @"");
+  return pigeonResult;
+}
++ (nullable PigeonCameraSettings *)nullableFromList:(NSArray *)list {
+  return (list) ? [PigeonCameraSettings fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    @(self.exposureMode),
+    (self.exposureTargetBias ?: [NSNull null]),
+    (self.minExposureTargetBias ?: [NSNull null]),
+    (self.maxExposureTargetBias ?: [NSNull null]),
+    (self.iso ?: [NSNull null]),
+    (self.minIso ?: [NSNull null]),
+    (self.maxIso ?: [NSNull null]),
+    (self.exposureDurationSeconds ?: [NSNull null]),
+    (self.minExposureDurationSeconds ?: [NSNull null]),
+    (self.maxExposureDurationSeconds ?: [NSNull null]),
+    @(self.focusMode),
+    (self.lensPosition ?: [NSNull null]),
+    @(self.whiteBalanceMode),
+    (self.temperature ?: [NSNull null]),
+    (self.tint ?: [NSNull null]),
+    @(self.torchMode),
+    (self.torchActive ?: [NSNull null]),
+    (self.lowLightBoostEnabled ?: [NSNull null]),
+    @(self.colorSpace),
+    (self.autoRedEyeReductionEnabled ?: [NSNull null]),
+    (self.zoomRatio ?: [NSNull null]),
+    (self.minZoomRatio ?: [NSNull null]),
+    (self.maxZoomRatio ?: [NSNull null]),
+  ];
+}
+@end
+
 @interface AnalysisImageUtilsCodecReader : FlutterStandardReader
 @end
 @implementation AnalysisImageUtilsCodecReader
@@ -591,14 +830,20 @@ void AnalysisImageUtilsSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObjec
     case 131: 
       return [ExifPreferences fromList:[self readValue]];
     case 132: 
-      return [PigeonSensor fromList:[self readValue]];
+      return [PigeonCameraSettings fromList:[self readValue]];
     case 133: 
-      return [PigeonSensorTypeDevice fromList:[self readValue]];
+      return [PigeonExposureState fromList:[self readValue]];
     case 134: 
-      return [PreviewSize fromList:[self readValue]];
+      return [PigeonSensor fromList:[self readValue]];
     case 135: 
-      return [PreviewSize fromList:[self readValue]];
+      return [PigeonSensorTypeDevice fromList:[self readValue]];
     case 136: 
+      return [PigeonWhiteBalanceGains fromList:[self readValue]];
+    case 137: 
+      return [PreviewSize fromList:[self readValue]];
+    case 138: 
+      return [PreviewSize fromList:[self readValue]];
+    case 139: 
       return [VideoOptions fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
@@ -622,20 +867,29 @@ void AnalysisImageUtilsSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObjec
   } else if ([value isKindOfClass:[ExifPreferences class]]) {
     [self writeByte:131];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PigeonSensor class]]) {
+  } else if ([value isKindOfClass:[PigeonCameraSettings class]]) {
     [self writeByte:132];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PigeonSensorTypeDevice class]]) {
+  } else if ([value isKindOfClass:[PigeonExposureState class]]) {
     [self writeByte:133];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PreviewSize class]]) {
+  } else if ([value isKindOfClass:[PigeonSensor class]]) {
     [self writeByte:134];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PreviewSize class]]) {
+  } else if ([value isKindOfClass:[PigeonSensorTypeDevice class]]) {
     [self writeByte:135];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[VideoOptions class]]) {
+  } else if ([value isKindOfClass:[PigeonWhiteBalanceGains class]]) {
     [self writeByte:136];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[PreviewSize class]]) {
+    [self writeByte:137];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[PreviewSize class]]) {
+    [self writeByte:138];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[VideoOptions class]]) {
+    [self writeByte:139];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -1373,6 +1627,578 @@ void CameraInterfaceSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<C
         FlutterError *error;
         NSNumber *output = [api isMultiCamSupportedWithError:&error];
         callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the [AVCaptureExposureMode]. See [PigeonExposureMode].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setExposureMode"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setExposureModeMode:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setExposureModeMode:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonExposureMode arg_mode = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setExposureModeMode:arg_mode error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the exposure point of interest at ([x], [y]) expressed in the
+  /// [previewSize] coordinate space.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setExposurePoint"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setExposurePointX:y:previewSize:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setExposurePointX:y:previewSize:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_x = GetNullableObjectAtIndex(args, 0);
+        NSNumber *arg_y = GetNullableObjectAtIndex(args, 1);
+        PreviewSize *arg_previewSize = GetNullableObjectAtIndex(args, 2);
+        FlutterError *error;
+        [api setExposurePointX:arg_x y:arg_y previewSize:arg_previewSize error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the absolute exposure target bias (EV), clamped to the device
+  /// supported range. Unlike [setCorrection] this takes a raw EV value.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setExposureTargetBias"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setExposureTargetBiasBias:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setExposureTargetBiasBias:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_bias = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setExposureTargetBiasBias:arg_bias error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Switch to custom exposure with the given [iso] and shutter speed
+  /// [exposureDurationSeconds] (in seconds), both clamped to the supported
+  /// range of the active format.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setManualExposure"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setManualExposureIso:exposureDurationSeconds:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setManualExposureIso:exposureDurationSeconds:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_iso = GetNullableObjectAtIndex(args, 0);
+        NSNumber *arg_exposureDurationSeconds = GetNullableObjectAtIndex(args, 1);
+        FlutterError *error;
+        [api setManualExposureIso:arg_iso exposureDurationSeconds:arg_exposureDurationSeconds error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns the current exposure capabilities and values of the device.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.getExposureState"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getExposureStateWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(getExposureStateWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        PigeonExposureState *output = [api getExposureStateWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns a snapshot of all current photo control values and their
+  /// supported ranges, read directly from the active device. Useful to
+  /// initialize a UI with the values actually applied.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.getCameraSettings"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getCameraSettingsWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(getCameraSettingsWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        PigeonCameraSettings *output = [api getCameraSettingsWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the [AVCaptureFocusMode]. See [PigeonFocusMode].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setFocusMode"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setFocusModeMode:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setFocusModeMode:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonFocusMode arg_mode = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setFocusModeMode:arg_mode error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Lock the focus at the given [lensPosition] (0.0 nearest, 1.0 farthest).
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setLensPosition"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setLensPositionLensPosition:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setLensPositionLensPosition:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_lensPosition = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setLensPositionLensPosition:arg_lensPosition error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns the current lens position (0.0 to 1.0).
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.getLensPosition"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getLensPositionWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(getLensPositionWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        NSNumber *output = [api getLensPositionWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the [AVCaptureDevice.AutoFocusRangeRestriction].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setAutoFocusRangeRestriction"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setAutoFocusRangeRestrictionRestriction:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setAutoFocusRangeRestrictionRestriction:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonFocusRangeRestriction arg_restriction = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setAutoFocusRangeRestrictionRestriction:arg_restriction error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Enable or disable smooth autofocus.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setSmoothAutoFocusEnabled"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setSmoothAutoFocusEnabledEnabled:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setSmoothAutoFocusEnabledEnabled:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_enabled = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setSmoothAutoFocusEnabledEnabled:arg_enabled error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the [AVCaptureWhiteBalanceMode]. See [PigeonWhiteBalanceMode].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setWhiteBalanceMode"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setWhiteBalanceModeMode:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setWhiteBalanceModeMode:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonWhiteBalanceMode arg_mode = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setWhiteBalanceModeMode:arg_mode error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Lock the white balance using the given device RGB [gains].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setWhiteBalanceGains"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setWhiteBalanceGainsGains:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setWhiteBalanceGainsGains:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonWhiteBalanceGains *arg_gains = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setWhiteBalanceGainsGains:arg_gains error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Lock the white balance using a [temperature] (Kelvin) and [tint].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setWhiteBalanceTemperatureTint"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setWhiteBalanceTemperatureTintTemperature:tint:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setWhiteBalanceTemperatureTintTemperature:tint:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_temperature = GetNullableObjectAtIndex(args, 0);
+        NSNumber *arg_tint = GetNullableObjectAtIndex(args, 1);
+        FlutterError *error;
+        [api setWhiteBalanceTemperatureTintTemperature:arg_temperature tint:arg_tint error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns the current device white balance gains.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.getWhiteBalanceGains"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getWhiteBalanceGainsWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(getWhiteBalanceGainsWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        PigeonWhiteBalanceGains *output = [api getWhiteBalanceGainsWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns the maximum supported white balance gain for the active device.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.getMaxWhiteBalanceGain"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getMaxWhiteBalanceGainWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(getMaxWhiteBalanceGainWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        NSNumber *output = [api getMaxWhiteBalanceGainWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Lock the white balance using the gray world estimate of the current scene.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setGrayWorldWhiteBalance"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setGrayWorldWhiteBalanceWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(setGrayWorldWhiteBalanceWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        [api setGrayWorldWhiteBalanceWithError:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the [AVCaptureTorchMode]. See [PigeonTorchMode]. Independent of the
+  /// photo flash configured through [setFlashMode].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setTorchMode"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setTorchModeMode:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setTorchModeMode:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonTorchMode arg_mode = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setTorchModeMode:arg_mode error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Turn on the torch at the given [level] (0.0 to 1.0).
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setTorchLevel"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setTorchLevelLevel:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setTorchLevelLevel:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_level = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setTorchLevelLevel:arg_level error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns whether the torch is currently active.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.isTorchActive"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(isTorchActiveWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(isTorchActiveWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        NSNumber *output = [api isTorchActiveWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Enable or disable automatic low light boost when available.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setLowLightBoostEnabled"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setLowLightBoostEnabledEnabled:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setLowLightBoostEnabledEnabled:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_enabled = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setLowLightBoostEnabledEnabled:arg_enabled error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns whether low light boost is supported by the active device.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.isLowLightBoostSupported"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(isLowLightBoostSupportedWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(isLowLightBoostSupportedWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        NSNumber *output = [api isLowLightBoostSupportedWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the active [AVCaptureColorSpace]. See [PigeonColorSpace].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setColorSpace"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setColorSpaceColorSpace:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setColorSpaceColorSpace:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonColorSpace arg_colorSpace = [GetNullableObjectAtIndex(args, 0) integerValue];
+        FlutterError *error;
+        [api setColorSpaceColorSpace:arg_colorSpace error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns the color spaces supported by the active format (as names of
+  /// [PigeonColorSpace]).
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.getAvailableColorSpaces"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getAvailableColorSpacesWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(getAvailableColorSpacesWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        NSArray<NSString *> *output = [api getAvailableColorSpacesWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Enable or disable automatic red eye reduction on the photo output.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setAutoRedEyeReductionEnabled"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setAutoRedEyeReductionEnabledEnabled:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setAutoRedEyeReductionEnabledEnabled:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_enabled = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setAutoRedEyeReductionEnabledEnabled:arg_enabled error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Set the absolute zoom factor (videoZoomFactor), clamped to the supported
+  /// range.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setZoomRatio"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setZoomRatioRatio:error:)], @"CameraInterface api (%@) doesn't respond to @selector(setZoomRatioRatio:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_ratio = GetNullableObjectAtIndex(args, 0);
+        FlutterError *error;
+        [api setZoomRatioRatio:arg_ratio error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns the minimum available zoom factor.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.getMinZoomRatio"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getMinZoomRatioWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(getMinZoomRatioWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        NSNumber *output = [api getMinZoomRatioWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Returns the maximum available zoom factor.
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.getMaxZoomRatio"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(getMaxZoomRatioWithError:)], @"CameraInterface api (%@) doesn't respond to @selector(getMaxZoomRatioWithError:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        NSNumber *output = [api getMaxZoomRatioWithError:&error];
+        callback(wrapResult(output, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  /// Smoothly ramp the zoom to [ratio] at the given [rate].
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.rampToZoomRatio"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(rampToZoomRatioRatio:rate:error:)], @"CameraInterface api (%@) doesn't respond to @selector(rampToZoomRatioRatio:rate:error:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSNumber *arg_ratio = GetNullableObjectAtIndex(args, 0);
+        NSNumber *arg_rate = GetNullableObjectAtIndex(args, 1);
+        FlutterError *error;
+        [api rampToZoomRatioRatio:arg_ratio rate:arg_rate error:&error];
+        callback(wrapResult(nil, error));
       }];
     } else {
       [channel setMessageHandler:nil];

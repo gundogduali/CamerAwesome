@@ -104,6 +104,43 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 - (CGSize)getEffectivPreviewSize;
 - (void)setUpCaptureSessionForAudioError:(nonnull void (^)(NSError *))error;
 - (void)setBrightness:(NSNumber *)brightness error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+
+// MARK: - AVFoundation photo controls
+// Exposure
+- (void)setExposureMode:(AVCaptureExposureMode)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (void)setExposurePoint:(CGPoint)point preview:(CGSize)preview error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (void)setExposureTargetBias:(float)bias error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (void)setManualExposureWithISO:(float)iso durationSeconds:(double)durationSeconds error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (nullable PigeonExposureState *)getExposureStateWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (nullable PigeonCameraSettings *)getCameraSettingsWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+// Focus
+- (void)setFocusMode:(AVCaptureFocusMode)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (void)setLensPosition:(float)lensPosition error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (CGFloat)getLensPosition;
+- (void)setAutoFocusRangeRestriction:(AVCaptureAutoFocusRangeRestriction)restriction error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (void)setSmoothAutoFocusEnabled:(BOOL)enabled error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+// White balance
+- (void)setWhiteBalanceMode:(AVCaptureWhiteBalanceMode)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (void)setWhiteBalanceGainsRed:(float)red green:(float)green blue:(float)blue error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (void)setWhiteBalanceTemperature:(float)temperature tint:(float)tint error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (nullable PigeonWhiteBalanceGains *)getWhiteBalanceGainsWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (CGFloat)getMaxWhiteBalanceGain;
+- (void)setGrayWorldWhiteBalanceWithError:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+// Lighting
+- (void)setTorchModeValue:(AVCaptureTorchMode)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (void)setTorchLevel:(float)level error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (BOOL)isTorchActive;
+- (void)setLowLightBoostEnabled:(BOOL)enabled error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (BOOL)isLowLightBoostSupported;
+// Color
+- (void)setColorSpace:(AVCaptureColorSpace)colorSpace error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (NSArray<NSString *> *)getAvailableColorSpaces;
+- (void)setAutoRedEyeReductionEnabled:(BOOL)enabled;
+// Zoom (ratio based)
+- (void)setZoomRatio:(float)ratio error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
+- (CGFloat)getMinZoomRatio;
+- (CGFloat)getMaxZoomRatio;
+- (void)rampToZoomRatio:(float)ratio rate:(float)rate error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error;
 @end
 
 NS_ASSUME_NONNULL_END

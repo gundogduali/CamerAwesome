@@ -97,6 +97,71 @@ typedef NS_ENUM(NSUInteger, AnalysisRotation) {
   AnalysisRotationRotation270deg = 3,
 };
 
+/// Exposure mode mirroring `AVCaptureDevice.ExposureMode`.
+/// [custom] lets you set ISO and shutter speed manually through
+/// [CameraInterface.setManualExposure].
+///
+/// iOS only for now.
+typedef NS_ENUM(NSUInteger, PigeonExposureMode) {
+  PigeonExposureModeLocked = 0,
+  PigeonExposureModeAuto = 1,
+  PigeonExposureModeContinuousAuto = 2,
+  PigeonExposureModeCustom = 3,
+};
+
+/// Focus mode mirroring `AVCaptureDevice.FocusMode`.
+/// When [locked], use [CameraInterface.setLensPosition] to drive the lens
+/// manually.
+///
+/// iOS only for now.
+typedef NS_ENUM(NSUInteger, PigeonFocusMode) {
+  PigeonFocusModeLocked = 0,
+  PigeonFocusModeAuto = 1,
+  PigeonFocusModeContinuousAuto = 2,
+};
+
+/// White balance mode mirroring `AVCaptureDevice.WhiteBalanceMode`.
+/// When [locked], use [CameraInterface.setWhiteBalanceGains] or
+/// [CameraInterface.setWhiteBalanceTemperatureTint] to set it manually.
+///
+/// iOS only for now.
+typedef NS_ENUM(NSUInteger, PigeonWhiteBalanceMode) {
+  PigeonWhiteBalanceModeLocked = 0,
+  PigeonWhiteBalanceModeAuto = 1,
+  PigeonWhiteBalanceModeContinuousAuto = 2,
+};
+
+/// Torch (continuous light) mode mirroring `AVCaptureDevice.TorchMode`.
+/// This is independent from the photo flash configured with
+/// [CameraInterface.setFlashMode].
+///
+/// iOS only for now.
+typedef NS_ENUM(NSUInteger, PigeonTorchMode) {
+  PigeonTorchModeOff = 0,
+  PigeonTorchModeOn = 1,
+  PigeonTorchModeAuto = 2,
+};
+
+/// Auto focus range restriction mirroring
+/// `AVCaptureDevice.AutoFocusRangeRestriction`.
+///
+/// iOS only for now.
+typedef NS_ENUM(NSUInteger, PigeonFocusRangeRestriction) {
+  PigeonFocusRangeRestrictionNone = 0,
+  PigeonFocusRangeRestrictionNear = 1,
+  PigeonFocusRangeRestrictionFar = 2,
+};
+
+/// Color space mirroring `AVCaptureColorSpace`.
+///
+/// iOS only for now.
+typedef NS_ENUM(NSUInteger, PigeonColorSpace) {
+  PigeonColorSpaceSRGB = 0,
+  PigeonColorSpaceP3D65 = 1,
+  PigeonColorSpaceHlgBT2020 = 2,
+  PigeonColorSpaceAppleLog = 3,
+};
+
 @class PreviewSize;
 @class ExifPreferences;
 @class PigeonSensor;
@@ -108,6 +173,9 @@ typedef NS_ENUM(NSUInteger, AnalysisRotation) {
 @class PlaneWrapper;
 @class CropRectWrapper;
 @class AnalysisImageWrapper;
+@class PigeonExposureState;
+@class PigeonWhiteBalanceGains;
+@class PigeonCameraSettings;
 
 @interface PreviewSize : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
@@ -252,6 +320,104 @@ typedef NS_ENUM(NSUInteger, AnalysisRotation) {
 @property(nonatomic, assign) AnalysisRotation rotation;
 @end
 
+/// Snapshot of the device exposure capabilities and current values.
+/// Durations are expressed in seconds.
+///
+/// iOS only for now.
+@interface PigeonExposureState : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithMinIso:(NSNumber *)minIso
+    maxIso:(NSNumber *)maxIso
+    currentIso:(NSNumber *)currentIso
+    minExposureDurationSeconds:(NSNumber *)minExposureDurationSeconds
+    maxExposureDurationSeconds:(NSNumber *)maxExposureDurationSeconds
+    currentExposureDurationSeconds:(NSNumber *)currentExposureDurationSeconds
+    minExposureTargetBias:(NSNumber *)minExposureTargetBias
+    maxExposureTargetBias:(NSNumber *)maxExposureTargetBias
+    currentExposureTargetBias:(NSNumber *)currentExposureTargetBias;
+@property(nonatomic, strong) NSNumber * minIso;
+@property(nonatomic, strong) NSNumber * maxIso;
+@property(nonatomic, strong) NSNumber * currentIso;
+@property(nonatomic, strong) NSNumber * minExposureDurationSeconds;
+@property(nonatomic, strong) NSNumber * maxExposureDurationSeconds;
+@property(nonatomic, strong) NSNumber * currentExposureDurationSeconds;
+@property(nonatomic, strong) NSNumber * minExposureTargetBias;
+@property(nonatomic, strong) NSNumber * maxExposureTargetBias;
+@property(nonatomic, strong) NSNumber * currentExposureTargetBias;
+@end
+
+/// RGB white balance gains mirroring
+/// `AVCaptureDevice.WhiteBalanceGains`.
+///
+/// iOS only for now.
+@interface PigeonWhiteBalanceGains : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithRed:(NSNumber *)red
+    green:(NSNumber *)green
+    blue:(NSNumber *)blue;
+@property(nonatomic, strong) NSNumber * red;
+@property(nonatomic, strong) NSNumber * green;
+@property(nonatomic, strong) NSNumber * blue;
+@end
+
+/// A snapshot of the current device photo control values **and** their
+/// supported ranges, read directly from `AVCaptureDevice`. Useful to
+/// initialize a UI with the values that are actually applied.
+///
+/// iOS only for now.
+@interface PigeonCameraSettings : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithExposureMode:(PigeonExposureMode)exposureMode
+    exposureTargetBias:(NSNumber *)exposureTargetBias
+    minExposureTargetBias:(NSNumber *)minExposureTargetBias
+    maxExposureTargetBias:(NSNumber *)maxExposureTargetBias
+    iso:(NSNumber *)iso
+    minIso:(NSNumber *)minIso
+    maxIso:(NSNumber *)maxIso
+    exposureDurationSeconds:(NSNumber *)exposureDurationSeconds
+    minExposureDurationSeconds:(NSNumber *)minExposureDurationSeconds
+    maxExposureDurationSeconds:(NSNumber *)maxExposureDurationSeconds
+    focusMode:(PigeonFocusMode)focusMode
+    lensPosition:(NSNumber *)lensPosition
+    whiteBalanceMode:(PigeonWhiteBalanceMode)whiteBalanceMode
+    temperature:(NSNumber *)temperature
+    tint:(NSNumber *)tint
+    torchMode:(PigeonTorchMode)torchMode
+    torchActive:(NSNumber *)torchActive
+    lowLightBoostEnabled:(NSNumber *)lowLightBoostEnabled
+    colorSpace:(PigeonColorSpace)colorSpace
+    autoRedEyeReductionEnabled:(NSNumber *)autoRedEyeReductionEnabled
+    zoomRatio:(NSNumber *)zoomRatio
+    minZoomRatio:(NSNumber *)minZoomRatio
+    maxZoomRatio:(NSNumber *)maxZoomRatio;
+@property(nonatomic, assign) PigeonExposureMode exposureMode;
+@property(nonatomic, strong) NSNumber * exposureTargetBias;
+@property(nonatomic, strong) NSNumber * minExposureTargetBias;
+@property(nonatomic, strong) NSNumber * maxExposureTargetBias;
+@property(nonatomic, strong) NSNumber * iso;
+@property(nonatomic, strong) NSNumber * minIso;
+@property(nonatomic, strong) NSNumber * maxIso;
+@property(nonatomic, strong) NSNumber * exposureDurationSeconds;
+@property(nonatomic, strong) NSNumber * minExposureDurationSeconds;
+@property(nonatomic, strong) NSNumber * maxExposureDurationSeconds;
+@property(nonatomic, assign) PigeonFocusMode focusMode;
+@property(nonatomic, strong) NSNumber * lensPosition;
+@property(nonatomic, assign) PigeonWhiteBalanceMode whiteBalanceMode;
+@property(nonatomic, strong) NSNumber * temperature;
+@property(nonatomic, strong) NSNumber * tint;
+@property(nonatomic, assign) PigeonTorchMode torchMode;
+@property(nonatomic, strong) NSNumber * torchActive;
+@property(nonatomic, strong) NSNumber * lowLightBoostEnabled;
+@property(nonatomic, assign) PigeonColorSpace colorSpace;
+@property(nonatomic, strong) NSNumber * autoRedEyeReductionEnabled;
+@property(nonatomic, strong) NSNumber * zoomRatio;
+@property(nonatomic, strong) NSNumber * minZoomRatio;
+@property(nonatomic, strong) NSNumber * maxZoomRatio;
+@end
+
 /// The codec used by AnalysisImageUtils.
 NSObject<FlutterMessageCodec> *AnalysisImageUtilsGetCodec(void);
 
@@ -322,6 +488,93 @@ NSObject<FlutterMessageCodec> *CameraInterfaceGetCodec(void);
 - (void)isVideoRecordingAndImageAnalysisSupportedSensor:(PigeonSensorPosition)sensor completion:(void (^)(NSNumber *_Nullable, FlutterError *_Nullable))completion;
 /// @return `nil` only when `error != nil`.
 - (nullable NSNumber *)isMultiCamSupportedWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the [AVCaptureExposureMode]. See [PigeonExposureMode].
+- (void)setExposureModeMode:(PigeonExposureMode)mode error:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the exposure point of interest at ([x], [y]) expressed in the
+/// [previewSize] coordinate space.
+- (void)setExposurePointX:(NSNumber *)x y:(NSNumber *)y previewSize:(PreviewSize *)previewSize error:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the absolute exposure target bias (EV), clamped to the device
+/// supported range. Unlike [setCorrection] this takes a raw EV value.
+- (void)setExposureTargetBiasBias:(NSNumber *)bias error:(FlutterError *_Nullable *_Nonnull)error;
+/// Switch to custom exposure with the given [iso] and shutter speed
+/// [exposureDurationSeconds] (in seconds), both clamped to the supported
+/// range of the active format.
+- (void)setManualExposureIso:(NSNumber *)iso exposureDurationSeconds:(NSNumber *)exposureDurationSeconds error:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns the current exposure capabilities and values of the device.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable PigeonExposureState *)getExposureStateWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns a snapshot of all current photo control values and their
+/// supported ranges, read directly from the active device. Useful to
+/// initialize a UI with the values actually applied.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable PigeonCameraSettings *)getCameraSettingsWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the [AVCaptureFocusMode]. See [PigeonFocusMode].
+- (void)setFocusModeMode:(PigeonFocusMode)mode error:(FlutterError *_Nullable *_Nonnull)error;
+/// Lock the focus at the given [lensPosition] (0.0 nearest, 1.0 farthest).
+- (void)setLensPositionLensPosition:(NSNumber *)lensPosition error:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns the current lens position (0.0 to 1.0).
+///
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)getLensPositionWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the [AVCaptureDevice.AutoFocusRangeRestriction].
+- (void)setAutoFocusRangeRestrictionRestriction:(PigeonFocusRangeRestriction)restriction error:(FlutterError *_Nullable *_Nonnull)error;
+/// Enable or disable smooth autofocus.
+- (void)setSmoothAutoFocusEnabledEnabled:(NSNumber *)enabled error:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the [AVCaptureWhiteBalanceMode]. See [PigeonWhiteBalanceMode].
+- (void)setWhiteBalanceModeMode:(PigeonWhiteBalanceMode)mode error:(FlutterError *_Nullable *_Nonnull)error;
+/// Lock the white balance using the given device RGB [gains].
+- (void)setWhiteBalanceGainsGains:(PigeonWhiteBalanceGains *)gains error:(FlutterError *_Nullable *_Nonnull)error;
+/// Lock the white balance using a [temperature] (Kelvin) and [tint].
+- (void)setWhiteBalanceTemperatureTintTemperature:(NSNumber *)temperature tint:(NSNumber *)tint error:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns the current device white balance gains.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable PigeonWhiteBalanceGains *)getWhiteBalanceGainsWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns the maximum supported white balance gain for the active device.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)getMaxWhiteBalanceGainWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Lock the white balance using the gray world estimate of the current scene.
+- (void)setGrayWorldWhiteBalanceWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the [AVCaptureTorchMode]. See [PigeonTorchMode]. Independent of the
+/// photo flash configured through [setFlashMode].
+- (void)setTorchModeMode:(PigeonTorchMode)mode error:(FlutterError *_Nullable *_Nonnull)error;
+/// Turn on the torch at the given [level] (0.0 to 1.0).
+- (void)setTorchLevelLevel:(NSNumber *)level error:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns whether the torch is currently active.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)isTorchActiveWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Enable or disable automatic low light boost when available.
+- (void)setLowLightBoostEnabledEnabled:(NSNumber *)enabled error:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns whether low light boost is supported by the active device.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)isLowLightBoostSupportedWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the active [AVCaptureColorSpace]. See [PigeonColorSpace].
+- (void)setColorSpaceColorSpace:(PigeonColorSpace)colorSpace error:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns the color spaces supported by the active format (as names of
+/// [PigeonColorSpace]).
+///
+/// @return `nil` only when `error != nil`.
+- (nullable NSArray<NSString *> *)getAvailableColorSpacesWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Enable or disable automatic red eye reduction on the photo output.
+- (void)setAutoRedEyeReductionEnabledEnabled:(NSNumber *)enabled error:(FlutterError *_Nullable *_Nonnull)error;
+/// Set the absolute zoom factor (videoZoomFactor), clamped to the supported
+/// range.
+- (void)setZoomRatioRatio:(NSNumber *)ratio error:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns the minimum available zoom factor.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)getMinZoomRatioWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Returns the maximum available zoom factor.
+///
+/// @return `nil` only when `error != nil`.
+- (nullable NSNumber *)getMaxZoomRatioWithError:(FlutterError *_Nullable *_Nonnull)error;
+/// Smoothly ramp the zoom to [ratio] at the given [rate].
+- (void)rampToZoomRatioRatio:(NSNumber *)ratio rate:(NSNumber *)rate error:(FlutterError *_Nullable *_Nonnull)error;
 @end
 
 extern void CameraInterfaceSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<CameraInterface> *_Nullable api);

@@ -70,6 +70,12 @@
       "request": "launch",
       "type": "dart",
       "program": "example/lib/fix_preview.dart"
+    },
+    {
+      "name": "Photo controls (AVFoundation)",
+      "request": "launch",
+      "type": "dart",
+      "program": "example/lib/camera_photo_controls_example.dart"
     }
   ]
 }

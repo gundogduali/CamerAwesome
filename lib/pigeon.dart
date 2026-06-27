@@ -62,13 +62,10 @@ enum PigeonSensorType {
   ///
   /// The wide angle sensor is the default sensor for iOS
   wideAngle,
-
   /// A built-in camera with a shorter focal length than that of the wide-angle camera.
   ultraWideAngle,
-
   /// A built-in camera device with a longer focal length than the wide-angle camera.
   telephoto,
-
   /// A device that consists of two cameras, one Infrared and one YUV.
   ///
   /// iOS only
@@ -80,7 +77,7 @@ enum CamerAwesomePermission {
   storage,
   camera,
   location,
-  recordAudio,
+  record_audio,
 }
 
 enum AnalysisImageFormat {
@@ -96,6 +93,71 @@ enum AnalysisRotation {
   rotation90deg,
   rotation180deg,
   rotation270deg,
+}
+
+/// Exposure mode mirroring `AVCaptureDevice.ExposureMode`.
+/// [custom] lets you set ISO and shutter speed manually through
+/// [CameraInterface.setManualExposure].
+///
+/// iOS only for now.
+enum PigeonExposureMode {
+  locked,
+  auto,
+  continuousAuto,
+  custom,
+}
+
+/// Focus mode mirroring `AVCaptureDevice.FocusMode`.
+/// When [locked], use [CameraInterface.setLensPosition] to drive the lens
+/// manually.
+///
+/// iOS only for now.
+enum PigeonFocusMode {
+  locked,
+  auto,
+  continuousAuto,
+}
+
+/// White balance mode mirroring `AVCaptureDevice.WhiteBalanceMode`.
+/// When [locked], use [CameraInterface.setWhiteBalanceGains] or
+/// [CameraInterface.setWhiteBalanceTemperatureTint] to set it manually.
+///
+/// iOS only for now.
+enum PigeonWhiteBalanceMode {
+  locked,
+  auto,
+  continuousAuto,
+}
+
+/// Torch (continuous light) mode mirroring `AVCaptureDevice.TorchMode`.
+/// This is independent from the photo flash configured with
+/// [CameraInterface.setFlashMode].
+///
+/// iOS only for now.
+enum PigeonTorchMode {
+  off,
+  on,
+  auto,
+}
+
+/// Auto focus range restriction mirroring
+/// `AVCaptureDevice.AutoFocusRangeRestriction`.
+///
+/// iOS only for now.
+enum PigeonFocusRangeRestriction {
+  none,
+  near,
+  far,
+}
+
+/// Color space mirroring `AVCaptureColorSpace`.
+///
+/// iOS only for now.
+enum PigeonColorSpace {
+  sRGB,
+  p3D65,
+  hlgBT2020,
+  appleLog,
 }
 
 class PreviewSize {
@@ -494,15 +556,251 @@ class AnalysisImageWrapper {
       cropRect: result[5] != null
           ? CropRectWrapper.decode(result[5]! as List<Object?>)
           : null,
-      rotation:
-          result[6] != null ? AnalysisRotation.values[result[6]! as int] : null,
+      rotation: result[6] != null
+          ? AnalysisRotation.values[result[6]! as int]
+          : null,
+    );
+  }
+}
+
+/// Snapshot of the device exposure capabilities and current values.
+/// Durations are expressed in seconds.
+///
+/// iOS only for now.
+class PigeonExposureState {
+  PigeonExposureState({
+    required this.minIso,
+    required this.maxIso,
+    required this.currentIso,
+    required this.minExposureDurationSeconds,
+    required this.maxExposureDurationSeconds,
+    required this.currentExposureDurationSeconds,
+    required this.minExposureTargetBias,
+    required this.maxExposureTargetBias,
+    required this.currentExposureTargetBias,
+  });
+
+  double minIso;
+
+  double maxIso;
+
+  double currentIso;
+
+  double minExposureDurationSeconds;
+
+  double maxExposureDurationSeconds;
+
+  double currentExposureDurationSeconds;
+
+  double minExposureTargetBias;
+
+  double maxExposureTargetBias;
+
+  double currentExposureTargetBias;
+
+  Object encode() {
+    return <Object?>[
+      minIso,
+      maxIso,
+      currentIso,
+      minExposureDurationSeconds,
+      maxExposureDurationSeconds,
+      currentExposureDurationSeconds,
+      minExposureTargetBias,
+      maxExposureTargetBias,
+      currentExposureTargetBias,
+    ];
+  }
+
+  static PigeonExposureState decode(Object result) {
+    result as List<Object?>;
+    return PigeonExposureState(
+      minIso: result[0]! as double,
+      maxIso: result[1]! as double,
+      currentIso: result[2]! as double,
+      minExposureDurationSeconds: result[3]! as double,
+      maxExposureDurationSeconds: result[4]! as double,
+      currentExposureDurationSeconds: result[5]! as double,
+      minExposureTargetBias: result[6]! as double,
+      maxExposureTargetBias: result[7]! as double,
+      currentExposureTargetBias: result[8]! as double,
+    );
+  }
+}
+
+/// RGB white balance gains mirroring
+/// `AVCaptureDevice.WhiteBalanceGains`.
+///
+/// iOS only for now.
+class PigeonWhiteBalanceGains {
+  PigeonWhiteBalanceGains({
+    required this.red,
+    required this.green,
+    required this.blue,
+  });
+
+  double red;
+
+  double green;
+
+  double blue;
+
+  Object encode() {
+    return <Object?>[
+      red,
+      green,
+      blue,
+    ];
+  }
+
+  static PigeonWhiteBalanceGains decode(Object result) {
+    result as List<Object?>;
+    return PigeonWhiteBalanceGains(
+      red: result[0]! as double,
+      green: result[1]! as double,
+      blue: result[2]! as double,
+    );
+  }
+}
+
+/// A snapshot of the current device photo control values **and** their
+/// supported ranges, read directly from `AVCaptureDevice`. Useful to
+/// initialize a UI with the values that are actually applied.
+///
+/// iOS only for now.
+class PigeonCameraSettings {
+  PigeonCameraSettings({
+    required this.exposureMode,
+    required this.exposureTargetBias,
+    required this.minExposureTargetBias,
+    required this.maxExposureTargetBias,
+    required this.iso,
+    required this.minIso,
+    required this.maxIso,
+    required this.exposureDurationSeconds,
+    required this.minExposureDurationSeconds,
+    required this.maxExposureDurationSeconds,
+    required this.focusMode,
+    required this.lensPosition,
+    required this.whiteBalanceMode,
+    required this.temperature,
+    required this.tint,
+    required this.torchMode,
+    required this.torchActive,
+    required this.lowLightBoostEnabled,
+    required this.colorSpace,
+    required this.autoRedEyeReductionEnabled,
+    required this.zoomRatio,
+    required this.minZoomRatio,
+    required this.maxZoomRatio,
+  });
+
+  PigeonExposureMode exposureMode;
+
+  double exposureTargetBias;
+
+  double minExposureTargetBias;
+
+  double maxExposureTargetBias;
+
+  double iso;
+
+  double minIso;
+
+  double maxIso;
+
+  double exposureDurationSeconds;
+
+  double minExposureDurationSeconds;
+
+  double maxExposureDurationSeconds;
+
+  PigeonFocusMode focusMode;
+
+  double lensPosition;
+
+  PigeonWhiteBalanceMode whiteBalanceMode;
+
+  double temperature;
+
+  double tint;
+
+  PigeonTorchMode torchMode;
+
+  bool torchActive;
+
+  bool lowLightBoostEnabled;
+
+  PigeonColorSpace colorSpace;
+
+  bool autoRedEyeReductionEnabled;
+
+  double zoomRatio;
+
+  double minZoomRatio;
+
+  double maxZoomRatio;
+
+  Object encode() {
+    return <Object?>[
+      exposureMode.index,
+      exposureTargetBias,
+      minExposureTargetBias,
+      maxExposureTargetBias,
+      iso,
+      minIso,
+      maxIso,
+      exposureDurationSeconds,
+      minExposureDurationSeconds,
+      maxExposureDurationSeconds,
+      focusMode.index,
+      lensPosition,
+      whiteBalanceMode.index,
+      temperature,
+      tint,
+      torchMode.index,
+      torchActive,
+      lowLightBoostEnabled,
+      colorSpace.index,
+      autoRedEyeReductionEnabled,
+      zoomRatio,
+      minZoomRatio,
+      maxZoomRatio,
+    ];
+  }
+
+  static PigeonCameraSettings decode(Object result) {
+    result as List<Object?>;
+    return PigeonCameraSettings(
+      exposureMode: PigeonExposureMode.values[result[0]! as int],
+      exposureTargetBias: result[1]! as double,
+      minExposureTargetBias: result[2]! as double,
+      maxExposureTargetBias: result[3]! as double,
+      iso: result[4]! as double,
+      minIso: result[5]! as double,
+      maxIso: result[6]! as double,
+      exposureDurationSeconds: result[7]! as double,
+      minExposureDurationSeconds: result[8]! as double,
+      maxExposureDurationSeconds: result[9]! as double,
+      focusMode: PigeonFocusMode.values[result[10]! as int],
+      lensPosition: result[11]! as double,
+      whiteBalanceMode: PigeonWhiteBalanceMode.values[result[12]! as int],
+      temperature: result[13]! as double,
+      tint: result[14]! as double,
+      torchMode: PigeonTorchMode.values[result[15]! as int],
+      torchActive: result[16]! as bool,
+      lowLightBoostEnabled: result[17]! as bool,
+      colorSpace: PigeonColorSpace.values[result[18]! as int],
+      autoRedEyeReductionEnabled: result[19]! as bool,
+      zoomRatio: result[20]! as double,
+      minZoomRatio: result[21]! as double,
+      maxZoomRatio: result[22]! as double,
     );
   }
 }
 
 class _AnalysisImageUtilsCodec extends StandardMessageCodec {
   const _AnalysisImageUtilsCodec();
-
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is AnalysisImageWrapper) {
@@ -522,11 +820,11 @@ class _AnalysisImageUtilsCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 128:
+      case 128: 
         return AnalysisImageWrapper.decode(readValue(buffer)!);
-      case 129:
+      case 129: 
         return CropRectWrapper.decode(readValue(buffer)!);
-      case 130:
+      case 130: 
         return PlaneWrapper.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -544,13 +842,12 @@ class AnalysisImageUtils {
 
   static const MessageCodec<Object?> codec = _AnalysisImageUtilsCodec();
 
-  Future<AnalysisImageWrapper> nv21toJpeg(
-      AnalysisImageWrapper arg_nv21Image, int arg_jpegQuality) async {
+  Future<AnalysisImageWrapper> nv21toJpeg(AnalysisImageWrapper arg_nv21Image, int arg_jpegQuality) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AnalysisImageUtils.nv21toJpeg', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel
-        .send(<Object?>[arg_nv21Image, arg_jpegQuality]) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_nv21Image, arg_jpegQuality]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -572,13 +869,12 @@ class AnalysisImageUtils {
     }
   }
 
-  Future<AnalysisImageWrapper> yuv420toJpeg(
-      AnalysisImageWrapper arg_yuvImage, int arg_jpegQuality) async {
+  Future<AnalysisImageWrapper> yuv420toJpeg(AnalysisImageWrapper arg_yuvImage, int arg_jpegQuality) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AnalysisImageUtils.yuv420toJpeg', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel
-        .send(<Object?>[arg_yuvImage, arg_jpegQuality]) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_yuvImage, arg_jpegQuality]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -600,8 +896,7 @@ class AnalysisImageUtils {
     }
   }
 
-  Future<AnalysisImageWrapper> yuv420toNv21(
-      AnalysisImageWrapper arg_yuvImage) async {
+  Future<AnalysisImageWrapper> yuv420toNv21(AnalysisImageWrapper arg_yuvImage) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AnalysisImageUtils.yuv420toNv21', codec,
         binaryMessenger: _binaryMessenger);
@@ -628,13 +923,12 @@ class AnalysisImageUtils {
     }
   }
 
-  Future<AnalysisImageWrapper> bgra8888toJpeg(
-      AnalysisImageWrapper arg_bgra8888image, int arg_jpegQuality) async {
+  Future<AnalysisImageWrapper> bgra8888toJpeg(AnalysisImageWrapper arg_bgra8888image, int arg_jpegQuality) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AnalysisImageUtils.bgra8888toJpeg', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel
-        .send(<Object?>[arg_bgra8888image, arg_jpegQuality]) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_bgra8888image, arg_jpegQuality]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -659,7 +953,6 @@ class AnalysisImageUtils {
 
 class _CameraInterfaceCodec extends StandardMessageCodec {
   const _CameraInterfaceCodec();
-
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is AndroidFocusSettings) {
@@ -674,20 +967,29 @@ class _CameraInterfaceCodec extends StandardMessageCodec {
     } else if (value is ExifPreferences) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is PigeonSensor) {
+    } else if (value is PigeonCameraSettings) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else if (value is PigeonSensorTypeDevice) {
+    } else if (value is PigeonExposureState) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is PreviewSize) {
+    } else if (value is PigeonSensor) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else if (value is PreviewSize) {
+    } else if (value is PigeonSensorTypeDevice) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else if (value is VideoOptions) {
+    } else if (value is PigeonWhiteBalanceGains) {
       buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    } else if (value is PreviewSize) {
+      buffer.putUint8(137);
+      writeValue(buffer, value.encode());
+    } else if (value is PreviewSize) {
+      buffer.putUint8(138);
+      writeValue(buffer, value.encode());
+    } else if (value is VideoOptions) {
+      buffer.putUint8(139);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -697,23 +999,29 @@ class _CameraInterfaceCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 128:
+      case 128: 
         return AndroidFocusSettings.decode(readValue(buffer)!);
-      case 129:
+      case 129: 
         return AndroidVideoOptions.decode(readValue(buffer)!);
-      case 130:
+      case 130: 
         return CupertinoVideoOptions.decode(readValue(buffer)!);
-      case 131:
+      case 131: 
         return ExifPreferences.decode(readValue(buffer)!);
-      case 132:
+      case 132: 
+        return PigeonCameraSettings.decode(readValue(buffer)!);
+      case 133: 
+        return PigeonExposureState.decode(readValue(buffer)!);
+      case 134: 
         return PigeonSensor.decode(readValue(buffer)!);
-      case 133:
+      case 135: 
         return PigeonSensorTypeDevice.decode(readValue(buffer)!);
-      case 134:
+      case 136: 
+        return PigeonWhiteBalanceGains.decode(readValue(buffer)!);
+      case 137: 
         return PreviewSize.decode(readValue(buffer)!);
-      case 135:
+      case 138: 
         return PreviewSize.decode(readValue(buffer)!);
-      case 136:
+      case 139: 
         return VideoOptions.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -731,32 +1039,12 @@ class CameraInterface {
 
   static const MessageCodec<Object?> codec = _CameraInterfaceCodec();
 
-  Future<bool> setupCamera(
-      List<PigeonSensor?> arg_sensors,
-      String arg_aspectRatio,
-      double arg_zoom,
-      bool arg_mirrorFrontCamera,
-      bool arg_enablePhysicalButton,
-      String arg_flashMode,
-      String arg_captureMode,
-      bool arg_enableImageStream,
-      ExifPreferences arg_exifPreferences,
-      VideoOptions? arg_videoOptions) async {
+  Future<bool> setupCamera(List<PigeonSensor?> arg_sensors, String arg_aspectRatio, double arg_zoom, bool arg_mirrorFrontCamera, bool arg_enablePhysicalButton, String arg_flashMode, String arg_captureMode, bool arg_enableImageStream, ExifPreferences arg_exifPreferences, VideoOptions? arg_videoOptions) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.setupCamera', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(<Object?>[
-      arg_sensors,
-      arg_aspectRatio,
-      arg_zoom,
-      arg_mirrorFrontCamera,
-      arg_enablePhysicalButton,
-      arg_flashMode,
-      arg_captureMode,
-      arg_enableImageStream,
-      arg_exifPreferences,
-      arg_videoOptions
-    ]) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_sensors, arg_aspectRatio, arg_zoom, arg_mirrorFrontCamera, arg_enablePhysicalButton, arg_flashMode, arg_captureMode, arg_enableImageStream, arg_exifPreferences, arg_videoOptions]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -861,8 +1149,7 @@ class CameraInterface {
     }
   }
 
-  Future<bool> takePhoto(
-      List<PigeonSensor?> arg_sensors, List<String?> arg_paths) async {
+  Future<bool> takePhoto(List<PigeonSensor?> arg_sensors, List<String?> arg_paths) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.takePhoto', codec,
         binaryMessenger: _binaryMessenger);
@@ -889,8 +1176,7 @@ class CameraInterface {
     }
   }
 
-  Future<void> recordVideo(
-      List<PigeonSensor?> arg_sensors, List<String?> arg_paths) async {
+  Future<void> recordVideo(List<PigeonSensor?> arg_sensors, List<String?> arg_paths) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.recordVideo', codec,
         binaryMessenger: _binaryMessenger);
@@ -916,7 +1202,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.pauseVideoRecording', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -937,7 +1224,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.resumeVideoRecording', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -958,7 +1246,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.receivedImageFromStream', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -979,7 +1268,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.stopRecordingVideo', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1005,7 +1295,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.getFrontSensors', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1031,7 +1322,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.getBackSensors', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1057,7 +1349,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.start', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1083,7 +1376,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.stop', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1131,7 +1425,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.handleAutoFocus', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1152,14 +1447,12 @@ class CameraInterface {
   ///
   /// On Android, you can control after how much time you want to switch back
   /// to passive focus mode with [androidFocusSettings].
-  Future<void> focusOnPoint(PreviewSize arg_previewSize, double arg_x,
-      double arg_y, AndroidFocusSettings? arg_androidFocusSettings) async {
+  Future<void> focusOnPoint(PreviewSize arg_previewSize, double arg_x, double arg_y, AndroidFocusSettings? arg_androidFocusSettings) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.focusOnPoint', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(
-            <Object?>[arg_previewSize, arg_x, arg_y, arg_androidFocusSettings])
-        as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_previewSize, arg_x, arg_y, arg_androidFocusSettings]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1268,7 +1561,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.getMinZoom', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1294,7 +1588,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.getMaxZoom', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1369,7 +1664,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.availableSizes', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1395,7 +1691,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.refresh', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1500,17 +1797,12 @@ class CameraInterface {
     }
   }
 
-  Future<void> setupImageAnalysisStream(String arg_format, int arg_width,
-      double? arg_maxFramesPerSecond, bool arg_autoStart) async {
+  Future<void> setupImageAnalysisStream(String arg_format, int arg_width, double? arg_maxFramesPerSecond, bool arg_autoStart) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.setupImageAnalysisStream', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(<Object?>[
-      arg_format,
-      arg_width,
-      arg_maxFramesPerSecond,
-      arg_autoStart
-    ]) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_format, arg_width, arg_maxFramesPerSecond, arg_autoStart]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1558,7 +1850,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.startAnalysis', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1579,7 +1872,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.stopAnalysis', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1618,11 +1912,9 @@ class CameraInterface {
     }
   }
 
-  Future<bool> isVideoRecordingAndImageAnalysisSupported(
-      PigeonSensorPosition arg_sensor) async {
+  Future<bool> isVideoRecordingAndImageAnalysisSupported(PigeonSensorPosition arg_sensor) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.CameraInterface.isVideoRecordingAndImageAnalysisSupported',
-        codec,
+        'dev.flutter.pigeon.CameraInterface.isVideoRecordingAndImageAnalysisSupported', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_sensor.index]) as List<Object?>?;
@@ -1651,7 +1943,8 @@ class CameraInterface {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.isMultiCamSupported', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -1670,6 +1963,732 @@ class CameraInterface {
       );
     } else {
       return (replyList[0] as bool?)!;
+    }
+  }
+
+  /// Set the [AVCaptureExposureMode]. See [PigeonExposureMode].
+  Future<void> setExposureMode(PigeonExposureMode arg_mode) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setExposureMode', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_mode.index]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Set the exposure point of interest at ([x], [y]) expressed in the
+  /// [previewSize] coordinate space.
+  Future<void> setExposurePoint(double arg_x, double arg_y, PreviewSize arg_previewSize) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setExposurePoint', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_x, arg_y, arg_previewSize]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Set the absolute exposure target bias (EV), clamped to the device
+  /// supported range. Unlike [setCorrection] this takes a raw EV value.
+  Future<void> setExposureTargetBias(double arg_bias) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setExposureTargetBias', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_bias]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Switch to custom exposure with the given [iso] and shutter speed
+  /// [exposureDurationSeconds] (in seconds), both clamped to the supported
+  /// range of the active format.
+  Future<void> setManualExposure(double arg_iso, double arg_exposureDurationSeconds) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setManualExposure', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_iso, arg_exposureDurationSeconds]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Returns the current exposure capabilities and values of the device.
+  Future<PigeonExposureState> getExposureState() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.getExposureState', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as PigeonExposureState?)!;
+    }
+  }
+
+  /// Returns a snapshot of all current photo control values and their
+  /// supported ranges, read directly from the active device. Useful to
+  /// initialize a UI with the values actually applied.
+  Future<PigeonCameraSettings> getCameraSettings() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.getCameraSettings', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as PigeonCameraSettings?)!;
+    }
+  }
+
+  /// Set the [AVCaptureFocusMode]. See [PigeonFocusMode].
+  Future<void> setFocusMode(PigeonFocusMode arg_mode) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setFocusMode', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_mode.index]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Lock the focus at the given [lensPosition] (0.0 nearest, 1.0 farthest).
+  Future<void> setLensPosition(double arg_lensPosition) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setLensPosition', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_lensPosition]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Returns the current lens position (0.0 to 1.0).
+  Future<double> getLensPosition() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.getLensPosition', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as double?)!;
+    }
+  }
+
+  /// Set the [AVCaptureDevice.AutoFocusRangeRestriction].
+  Future<void> setAutoFocusRangeRestriction(PigeonFocusRangeRestriction arg_restriction) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setAutoFocusRangeRestriction', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_restriction.index]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Enable or disable smooth autofocus.
+  Future<void> setSmoothAutoFocusEnabled(bool arg_enabled) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setSmoothAutoFocusEnabled', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_enabled]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Set the [AVCaptureWhiteBalanceMode]. See [PigeonWhiteBalanceMode].
+  Future<void> setWhiteBalanceMode(PigeonWhiteBalanceMode arg_mode) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setWhiteBalanceMode', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_mode.index]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Lock the white balance using the given device RGB [gains].
+  Future<void> setWhiteBalanceGains(PigeonWhiteBalanceGains arg_gains) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setWhiteBalanceGains', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_gains]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Lock the white balance using a [temperature] (Kelvin) and [tint].
+  Future<void> setWhiteBalanceTemperatureTint(double arg_temperature, double arg_tint) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setWhiteBalanceTemperatureTint', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_temperature, arg_tint]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Returns the current device white balance gains.
+  Future<PigeonWhiteBalanceGains> getWhiteBalanceGains() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.getWhiteBalanceGains', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as PigeonWhiteBalanceGains?)!;
+    }
+  }
+
+  /// Returns the maximum supported white balance gain for the active device.
+  Future<double> getMaxWhiteBalanceGain() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.getMaxWhiteBalanceGain', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as double?)!;
+    }
+  }
+
+  /// Lock the white balance using the gray world estimate of the current scene.
+  Future<void> setGrayWorldWhiteBalance() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setGrayWorldWhiteBalance', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Set the [AVCaptureTorchMode]. See [PigeonTorchMode]. Independent of the
+  /// photo flash configured through [setFlashMode].
+  Future<void> setTorchMode(PigeonTorchMode arg_mode) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setTorchMode', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_mode.index]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Turn on the torch at the given [level] (0.0 to 1.0).
+  Future<void> setTorchLevel(double arg_level) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setTorchLevel', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_level]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Returns whether the torch is currently active.
+  Future<bool> isTorchActive() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.isTorchActive', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as bool?)!;
+    }
+  }
+
+  /// Enable or disable automatic low light boost when available.
+  Future<void> setLowLightBoostEnabled(bool arg_enabled) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setLowLightBoostEnabled', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_enabled]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Returns whether low light boost is supported by the active device.
+  Future<bool> isLowLightBoostSupported() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.isLowLightBoostSupported', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as bool?)!;
+    }
+  }
+
+  /// Set the active [AVCaptureColorSpace]. See [PigeonColorSpace].
+  Future<void> setColorSpace(PigeonColorSpace arg_colorSpace) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setColorSpace', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_colorSpace.index]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Returns the color spaces supported by the active format (as names of
+  /// [PigeonColorSpace]).
+  Future<List<String?>> getAvailableColorSpaces() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.getAvailableColorSpaces', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as List<Object?>?)!.cast<String?>();
+    }
+  }
+
+  /// Enable or disable automatic red eye reduction on the photo output.
+  Future<void> setAutoRedEyeReductionEnabled(bool arg_enabled) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setAutoRedEyeReductionEnabled', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_enabled]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Set the absolute zoom factor (videoZoomFactor), clamped to the supported
+  /// range.
+  Future<void> setZoomRatio(double arg_ratio) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setZoomRatio', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_ratio]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Returns the minimum available zoom factor.
+  Future<double> getMinZoomRatio() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.getMinZoomRatio', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as double?)!;
+    }
+  }
+
+  /// Returns the maximum available zoom factor.
+  Future<double> getMaxZoomRatio() async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.getMaxZoomRatio', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(null) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as double?)!;
+    }
+  }
+
+  /// Smoothly ramp the zoom to [ratio] at the given [rate].
+  Future<void> rampToZoomRatio(double arg_ratio, double arg_rate) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.rampToZoomRatio', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_ratio, arg_rate]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
     }
   }
 }

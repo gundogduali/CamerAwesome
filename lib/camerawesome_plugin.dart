@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 export 'src/camera_characteristics/camera_characteristics.dart';
 export 'src/orchestrator/analysis/analysis_controller.dart';
 export 'src/orchestrator/models/models.dart';
+export 'src/orchestrator/models/camera_photo_controls.dart';
 export 'src/orchestrator/models/sensor_type.dart';
 export 'src/orchestrator/models/sensors.dart';
 export 'src/orchestrator/states/states.dart';
@@ -388,6 +389,202 @@ class CamerawesomePlugin {
   /// returns the min zoom available on device
   static Future<double?> getMinZoom() {
     return CameraInterface().getMinZoom();
+  }
+
+  // ===========================================================================
+  // AVFoundation photo controls (iOS only for now).
+  //
+  // On Android these throw an "unimplemented" error.
+  // ===========================================================================
+
+  // --- Exposure ---
+
+  /// Set the [ExposureMode]. Use [ExposureMode.custom] together with
+  /// [setManualExposure] to control ISO and shutter speed manually.
+  static Future<void> setExposureMode(ExposureMode mode) {
+    return CameraInterface().setExposureMode(mode.pigeon);
+  }
+
+  /// Set the exposure point of interest at [position] within [previewSize].
+  static Future<void> setExposurePoint({
+    required Offset position,
+    required PreviewSize previewSize,
+  }) {
+    return CameraInterface()
+        .setExposurePoint(position.dx, position.dy, previewSize);
+  }
+
+  /// Set the absolute exposure target bias (EV). The value is clamped to the
+  /// device supported range (see [getExposureState]). Unlike [setBrightness]
+  /// this takes a raw EV value.
+  static Future<void> setExposureTargetBias(double bias) {
+    return CameraInterface().setExposureTargetBias(bias);
+  }
+
+  /// Switch to custom exposure with the given [iso] and shutter speed
+  /// [exposureDurationSeconds] (in seconds). Both are clamped to the supported
+  /// range of the active format.
+  static Future<void> setManualExposure({
+    required double iso,
+    required double exposureDurationSeconds,
+  }) {
+    return CameraInterface().setManualExposure(iso, exposureDurationSeconds);
+  }
+
+  /// Returns the current exposure capabilities and values of the device.
+  static Future<ExposureState> getExposureState() async {
+    return ExposureState.fromPigeon(
+        await CameraInterface().getExposureState());
+  }
+
+  /// Returns a snapshot of all current photo control values and their
+  /// supported ranges, read directly from the active device. Use it to
+  /// initialize a UI with the values that are actually applied (modes,
+  /// temperature/tint, zoom ratio, etc.).
+  static Future<CameraSettings> getCameraSettings() async {
+    return CameraSettings.fromPigeon(
+        await CameraInterface().getCameraSettings());
+  }
+
+  // --- Focus ---
+
+  /// Set the [FocusMode]. Use [FocusMode.locked] with [setLensPosition] to
+  /// drive the lens manually.
+  static Future<void> setFocusMode(FocusMode mode) {
+    return CameraInterface().setFocusMode(mode.pigeon);
+  }
+
+  /// Lock the focus at the given [lensPosition] (0.0 nearest, 1.0 farthest).
+  static Future<void> setLensPosition(double lensPosition) {
+    return CameraInterface().setLensPosition(lensPosition);
+  }
+
+  /// Returns the current lens position (0.0 to 1.0).
+  static Future<double> getLensPosition() {
+    return CameraInterface().getLensPosition();
+  }
+
+  /// Restrict the auto focus range. See [FocusRangeRestriction].
+  static Future<void> setAutoFocusRangeRestriction(
+      FocusRangeRestriction restriction) {
+    return CameraInterface().setAutoFocusRangeRestriction(restriction.pigeon);
+  }
+
+  /// Enable or disable smooth autofocus.
+  static Future<void> setSmoothAutoFocusEnabled(bool enabled) {
+    return CameraInterface().setSmoothAutoFocusEnabled(enabled);
+  }
+
+  // --- White balance ---
+
+  /// Set the [WhiteBalanceMode].
+  static Future<void> setWhiteBalanceMode(WhiteBalanceMode mode) {
+    return CameraInterface().setWhiteBalanceMode(mode.pigeon);
+  }
+
+  /// Lock the white balance using the given device RGB [gains].
+  static Future<void> setWhiteBalanceGains(WhiteBalanceGains gains) {
+    return CameraInterface().setWhiteBalanceGains(gains.pigeon);
+  }
+
+  /// Lock the white balance using a [temperature] (in Kelvin) and [tint].
+  static Future<void> setWhiteBalanceTemperatureTint({
+    required double temperature,
+    required double tint,
+  }) {
+    return CameraInterface()
+        .setWhiteBalanceTemperatureTint(temperature, tint);
+  }
+
+  /// Returns the current device white balance gains.
+  static Future<WhiteBalanceGains> getWhiteBalanceGains() async {
+    return WhiteBalanceGains.fromPigeon(
+        await CameraInterface().getWhiteBalanceGains());
+  }
+
+  /// Returns the maximum supported white balance gain for the active device.
+  static Future<double> getMaxWhiteBalanceGain() {
+    return CameraInterface().getMaxWhiteBalanceGain();
+  }
+
+  /// Lock the white balance using the gray world estimate of the current scene.
+  static Future<void> setGrayWorldWhiteBalance() {
+    return CameraInterface().setGrayWorldWhiteBalance();
+  }
+
+  // --- Lighting ---
+
+  /// Set the torch [TorchMode]. Independent from the photo flash configured
+  /// with [setFlashMode].
+  static Future<void> setTorchMode(TorchMode mode) {
+    return CameraInterface().setTorchMode(mode.pigeon);
+  }
+
+  /// Turn on the torch at the given [level] (0.0 to 1.0). A level of 0 turns
+  /// the torch off.
+  static Future<void> setTorchLevel(double level) {
+    return CameraInterface().setTorchLevel(level);
+  }
+
+  /// Returns whether the torch is currently active.
+  static Future<bool> isTorchActive() {
+    return CameraInterface().isTorchActive();
+  }
+
+  /// Enable or disable automatic low light boost when available.
+  static Future<void> setLowLightBoostEnabled(bool enabled) {
+    return CameraInterface().setLowLightBoostEnabled(enabled);
+  }
+
+  /// Returns whether low light boost is supported by the active device.
+  static Future<bool> isLowLightBoostSupported() {
+    return CameraInterface().isLowLightBoostSupported();
+  }
+
+  // --- Color ---
+
+  /// Set the active [AwesomeColorSpace].
+  static Future<void> setColorSpace(AwesomeColorSpace colorSpace) {
+    return CameraInterface().setColorSpace(colorSpace.pigeon);
+  }
+
+  /// Returns the color spaces supported by the active format.
+  static Future<List<AwesomeColorSpace>> getAvailableColorSpaces() async {
+    final names = await CameraInterface().getAvailableColorSpaces();
+    return names
+        .whereType<String>()
+        .map((name) => AwesomeColorSpace.values
+            .firstWhereOrNull((value) => value.name == name))
+        .whereType<AwesomeColorSpace>()
+        .toList();
+  }
+
+  /// Enable or disable automatic red eye reduction when taking a photo.
+  static Future<void> setAutoRedEyeReductionEnabled(bool enabled) {
+    return CameraInterface().setAutoRedEyeReductionEnabled(enabled);
+  }
+
+  // --- Zoom (ratio based) ---
+
+  /// Set the absolute zoom factor (videoZoomFactor), clamped to the supported
+  /// range. Complements the normalized [setZoom].
+  static Future<void> setZoomRatio(double ratio) {
+    return CameraInterface().setZoomRatio(ratio);
+  }
+
+  /// Returns the minimum available zoom factor.
+  static Future<double> getMinZoomRatio() {
+    return CameraInterface().getMinZoomRatio();
+  }
+
+  /// Returns the maximum available zoom factor.
+  static Future<double> getMaxZoomRatio() {
+    return CameraInterface().getMaxZoomRatio();
+  }
+
+  /// Smoothly ramp the zoom to [ratio] at the given [rate].
+  static Future<void> rampToZoomRatio(double ratio, {double rate = 2.0}) {
+    return CameraInterface().rampToZoomRatio(ratio, rate);
   }
 
   static Future<bool> isMultiCamSupported() {
